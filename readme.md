@@ -2,6 +2,12 @@
 
 A social network with an endless feed where users can share, like, roast, and comment on useless inventions. A TikTok or Instagram-like experience, but for pure nonsense. 🎉
 
+## How to deploy
+🚀 Deploying this app is as easy as building the docker image and starting the container!
+```bash
+docker compose up --build
+```
+
 ## 🔥 Key Features of the Social Network
 
 1. **Endless Scroll Feed** 📜
