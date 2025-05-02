@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Useless Inventions")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4416e85a5da428b6a66affb3e9e312e945b8ef3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9e34cb60dd50b1d6bcdf32ac07a89474103e02c5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Useless Inventions")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Useless Inventions")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
