@@ -20,35 +20,45 @@ namespace Useless_Inventions.Data
             base.OnModelCreating(builder);
 
             // Configure relationships and constraints
+            // Ensure that the UserId in the Invention table is not nullable
             builder.Entity<Invention>()
                 .HasOne(i => i.User)
                 .WithMany()
                 .HasForeignKey(i => i.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Ensure that the InventionId in the Comment table is not nullable
             builder.Entity<Comment>()
                 .HasOne(c => c.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Ensure that the InventionId in the Comment table is not nullable
             builder.Entity<Comment>()
                 .HasOne(c => c.Invention)
                 .WithMany(i => i.Comments)
                 .HasForeignKey(c => c.InventionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Ensure that the UserId in the Comment table is not nullable
             builder.Entity<Like>()
                 .HasOne(l => l.User)
                 .WithMany()
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Ensure that the UserId in the Like table is not nullable
             builder.Entity<Like>()
                 .HasOne(l => l.Invention)
                 .WithMany(i => i.Likes)
                 .HasForeignKey(l => l.InventionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Make sure that a user can only like an invention once
+            builder.Entity<Like>()  
+                .HasIndex(l => new { l.UserId, l.InventionId })  
+                .IsUnique();  
         }
     }
 }
