@@ -1,0 +1,129 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.UI
+@model Useless_Inventions.Models.Invention
+@inject UserManager<IdentityUser> UserManager
+
+@{
+    ViewData["Title"] = Model.Title;
+    var currentUserId = UserManager.GetUserId(User);
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@Model.Title</h1>
+            <div class="mb-3">
+                <small class="text-muted">
+                    Posted by @Model.User.UserName on @Model.CreatedAt.ToString("MMM dd, yyyy")
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <span>(Edited on @Model.UpdatedAt.Value.ToString("MMM dd, yyyy"))</span>
+                    }
+                </small>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" class="img-fluid mb-3" alt="@Model.Title">
+            }
+
+            <div class="mb-4">
+                <p class="lead">@Model.Description</p>
+            </div>
+
+            @if (Model.UserId == currentUserId)
+            {
+                <div class="mb-4">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        Delete
+                    </button>
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-heart-fill text-danger"></i>
+                        @Model.Likes.Count Likes
+                    </h5>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-action="ToggleLike" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn @(Model.Likes.Any(l => l.UserId == currentUserId) ? "btn-danger" : "btn-outline-danger")">
+                                <i class="bi bi-heart@(Model.Likes.Any(l => l.UserId == currentUserId) ? "-fill" : "")"></i>
+                                @(Model.Likes.Any(l => l.UserId == currentUserId) ? "Unlike" : "Like")
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <h3>Comments</h3>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form asp-action="AddComment" method="post" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="inventionId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" required placeholder="Share your thoughts..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+            }
+
+            <div class="comments-section">
+                @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                {
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <p class="card-text">@comment.Content</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    By @comment.User.UserName on @comment.CreatedAt.ToString("MMM dd, yyyy")
+                                </small>
+                                @if (comment.UserId == currentUserId)
+                                {
+                                    <form asp-action="DeleteComment" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="commentId" value="@comment.Id" />
+                                        <input type="hidden" name="inventionId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Are you sure you want to delete this comment?')">
+                                            Delete
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.UserId == currentUserId)
+{
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Invention</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this invention? This cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
