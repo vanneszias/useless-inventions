@@ -107,20 +107,19 @@ public class InventionsController : Controller
 
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new { id = inventionId });
+    }
+
+    // POST: Inventions/DeleteComment
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> DeleteComment(int commentId, int inventionId)
     {
         Comment? comment = await _context.Comments
             .FirstOrDefaultAsync(c => c.Id == commentId && c.InventionId == inventionId);
         if (comment == null || comment.UserId != _userManager.GetUserId(User))
         {
-            return NotFound();
-        }
-
-        _context.Comments.Remove(comment);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Details), new { id = inventionId });
-    }
             return NotFound();
         }
 
