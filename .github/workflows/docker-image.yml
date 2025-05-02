@@ -7,12 +7,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag useless-inventions:$(date +%s)
+      run: docker build . --file Dockerfile --tag vanneszias/useless-inventions:${{ github.sha }}
+
+    - name: Push the Docker image
+      run: docker push vanneszias/useless-inventions:${{ github.sha }}
