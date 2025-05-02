@@ -2,11 +2,14 @@ name: Docker Image CI and Deploy
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - "main"
   pull_request:
-    branches: ["main"]
+    branches:
+      - "main"
 
 jobs:
+  # Build and Test the Docker Image
   build:
     runs-on: ubuntu-latest
 
@@ -26,25 +29,43 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag vanneszias/useless-inventions:${{ github.sha }}
+      # Step 3: Build Docker image
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag vanneszias/useless-inventions:${{ github.sha }} --tag vanneszias/useless-inventions:latest
 
-      - name: Push the Docker image
-        run: docker push vanneszias/useless-inventions:${{ github.sha }}
+      # Step 4: Push Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push vanneszias/useless-inventions:${{ github.sha }}
+          docker push vanneszias/useless-inventions:latest
 
+  # Deploy Docker Image to Azure Web App
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Deploy to Azure Web App using Docker Image from Docker Hub
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: "uselessinventions"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: "vanneszias/useless-inventions:${{ github.sha }}"
+          images: vanneszias/useless-inventions:latest
+
+      # Step 3: Verify Deployment (optional)
+      - name: Verify Deployment (optional)
+        run: |
+          curl --fail http://uselessinventions.azurewebsites.net || exit 1
