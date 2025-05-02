@@ -83,6 +83,14 @@ public class InventionsController : Controller
     [Authorize]
     public async Task<IActionResult> AddComment(int inventionId, string content)
     {
+        content = content?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(content) || content.Length > 1000)
+        {
+            ModelState.AddModelError(nameof(content),
+                "Comment text is required and must be ≤ 1000 characters.");
+            return RedirectToAction(nameof(Details), new { id = inventionId });
+        }
+
         Invention? invention = await _context.Inventions.FindAsync(inventionId);
         if (invention == null)
         {
@@ -99,19 +107,20 @@ public class InventionsController : Controller
 
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
+    public async Task<IActionResult> DeleteComment(int commentId, int inventionId)
+    {
+        Comment? comment = await _context.Comments
+            .FirstOrDefaultAsync(c => c.Id == commentId && c.InventionId == inventionId);
+        if (comment == null || comment.UserId != _userManager.GetUserId(User))
+        {
+            return NotFound();
+        }
+
+        _context.Comments.Remove(comment);
+        await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { id = inventionId });
     }
-
-    // POST: Inventions/DeleteComment
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize]
-    public async Task<IActionResult> DeleteComment(int commentId, int inventionId)
-    {
-        Comment? comment = await _context.Comments.FindAsync(commentId);
-        if (comment == null || comment.UserId != _userManager.GetUserId(User))
-        {
             return NotFound();
         }
 
