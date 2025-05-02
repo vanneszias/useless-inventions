@@ -7,13 +7,18 @@ public class Invention
 {
     public int Id { get; set; }
 
-    [Required]
-    [StringLength(100)]
+    [Required(ErrorMessage = "Title is required")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 100 characters")]
+    [Display(Name = "Title")]
     public string Title { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Description is required")]
+    [MinLength(10, ErrorMessage = "Description must be at least 10 characters long")]
+    [Display(Name = "Description")]
     public string Description { get; set; } = string.Empty;
 
+    [Display(Name = "Image URL")]
+    [Url(ErrorMessage = "Please enter a valid URL")]
     public string? ImageUrl { get; set; }
 
     [Required]

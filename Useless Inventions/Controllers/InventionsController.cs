@@ -65,14 +65,24 @@ public class InventionsController : Controller
     [Authorize]
     public async Task<IActionResult> Create([Bind("Title,Description,ImageUrl")] Invention invention)
     {
-        if (ModelState.IsValid)
+        // Set required user properties before validation
+        invention.UserId = _userManager.GetUserId(User)!;
+        invention.CreatedAt = DateTime.UtcNow;
+        invention.User = await _userManager.GetUserAsync(User)!;
+
+        // Clear and revalidate ModelState after setting required properties
+        ModelState.Clear();
+        if (TryValidateModel(invention))
         {
-            invention.UserId = _userManager.GetUserId(User)!;
-            invention.CreatedAt = DateTime.UtcNow;
-            
             _context.Add(invention);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        ModelState.AddModelError(string.Empty, "Invalid data. Please check your input.");
+        foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            Console.WriteLine(error.ErrorMessage);
         }
         return View(invention);
     }
@@ -174,7 +184,10 @@ public class InventionsController : Controller
             return NotFound();
         }
 
-        Invention? invention = await _context.Inventions.FindAsync(id);
+        Invention? invention = await _context.Inventions
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.Id == id);
+            
         if (invention == null || invention.UserId != _userManager.GetUserId(User))
         {
             return NotFound();
@@ -194,22 +207,30 @@ public class InventionsController : Controller
             return NotFound();
         }
 
-        Invention? existingInvention = await _context.Inventions.FindAsync(id);
+        Invention? existingInvention = await _context.Inventions
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.Id == id);
+            
         if (existingInvention == null || existingInvention.UserId != _userManager.GetUserId(User))
         {
             return NotFound();
         }
 
-        if (ModelState.IsValid)
+        // Preserve existing values that shouldn't change
+        invention.UserId = existingInvention.UserId;
+        invention.User = existingInvention.User;
+        invention.CreatedAt = existingInvention.CreatedAt;
+        invention.UpdatedAt = DateTime.UtcNow;
+
+        // Clear and revalidate ModelState after setting required properties
+        ModelState.Clear();
+        if (TryValidateModel(invention))
         {
             try
             {
-                existingInvention.Title = invention.Title;
-                existingInvention.Description = invention.Description;
-                existingInvention.ImageUrl = invention.ImageUrl;
-                existingInvention.UpdatedAt = DateTime.UtcNow;
-                
+                _context.Entry(existingInvention).CurrentValues.SetValues(invention);
                 await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -219,7 +240,12 @@ public class InventionsController : Controller
                 }
                 throw;
             }
-            return RedirectToAction(nameof(Index));
+        }
+
+        ModelState.AddModelError(string.Empty, "Invalid data. Please check your input.");
+        foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            Console.WriteLine(error.ErrorMessage);
         }
         return View(invention);
     }
