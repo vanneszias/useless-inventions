@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Useless_Inventions.Models;
 
@@ -6,6 +6,10 @@ namespace Useless_Inventions.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class with the specified options.
+        /// </summary>
+        /// <param name="options">The options to be used by the database context.</param>
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -15,6 +19,10 @@ namespace Useless_Inventions.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
 
+        /// <summary>
+        /// Configures entity relationships and delete behaviors for the application's data model.
+        /// </summary>
+        /// <param name="builder">The model builder used to configure entity mappings and constraints.</param>
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
