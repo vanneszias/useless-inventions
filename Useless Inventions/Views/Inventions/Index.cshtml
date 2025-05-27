@@ -4,11 +4,6 @@
     ViewData["Title"] = "Useless Inventions";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Useless Inventions</h1>
-    <p>A place for sharing your most impractical ideas!</p>
-</div>
-
 @if (User.Identity?.IsAuthenticated == true)
 {
     <div class="text-end mb-4">
@@ -16,30 +11,4 @@
     </div>
 }
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    @foreach (var item in Model)
-    {
-        <div class="col">
-            <div class="card h-100">
-                @if (!string.IsNullOrEmpty(item.ImageUrl))
-                {
-                    <img src="@item.ImageUrl" class="card-img-top" alt="@item.Title">
-                }
-                <div class="card-body">
-                    <h5 class="card-title">@item.Title</h5>
-                    <p class="card-text">@(item.Description.Length > 150 ? item.Description.Substring(0, 147) + "..." : item.Description)</p>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">By @item.User.UserName on @item.CreatedAt.ToString("MMM dd, yyyy")</small>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <div>
-                            <i class="bi bi-heart-fill text-danger"></i>
-                            <span>@item.Likes.Count</span>
-                        </div>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-</div>
+@await Html.PartialAsync("Components/Feed/_Feed", Model)

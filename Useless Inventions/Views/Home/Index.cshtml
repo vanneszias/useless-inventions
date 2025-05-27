@@ -2,37 +2,4 @@
     ViewData["Title"] = "Useless Inventions";
 }
 
-<div class="hero-section text-center">
-    <h1 class="display-3">Welcome to Useless Inventions</h1>
-    <p class="lead mt-4">Discover and share the most brilliantly pointless inventions ever created!</p>
-    <div class="mt-4">
-        <a href="/Inventions" class="btn btn-primary btn-lg">Browse Inventions</a>
-        <a href="/Inventions/Create" class="btn btn-outline-primary btn-lg ms-2">Share Your Invention</a>
-    </div>
-</div>
-
-<div class="features-section mt-5">
-    <div class="row text-center">
-        <div class="col-md-4">
-            <div class="feature-card">
-                <i class="bi bi-lightbulb feature-icon"></i>
-                <h3>Share Ideas</h3>
-                <p>Got a brilliantly useless idea? Share it with our community!</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <i class="bi bi-chat-dots feature-icon"></i>
-                <h3>Discuss</h3>
-                <p>Comment on other inventions and share your thoughts.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <i class="bi bi-heart feature-icon"></i>
-                <h3>Vote</h3>
-                <p>Like your favorite useless inventions and help them gain fame!</p>
-            </div>
-        </div>
-    </div>
-</div>
+@await Html.PartialAsync("Components/Feed/_Feed")

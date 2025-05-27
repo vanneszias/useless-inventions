@@ -6,102 +6,52 @@
 @{
     ViewData["Title"] = Model.Title;
     var currentUserId = UserManager.GetUserId(User);
+    var postModel = new {
+        User = "@" + Model.User?.UserName,
+        Content = Model.Title + ": " + Model.Description,
+        Time = Model.CreatedAt.ToString("MMM dd, yyyy"),
+        Likes = Model.Likes?.Count ?? 0,
+        Comments = Model.Comments?.Count ?? 0,
+        ImageUrl = Model.ImageUrl,
+        Id = Model.Id
+    };
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <h1>@Model.Title</h1>
-            <div class="mb-3">
-                <small class="text-muted">
-                    Posted by @Model.User.UserName on @Model.CreatedAt.ToString("MMM dd, yyyy")
-                    @if (Model.UpdatedAt.HasValue)
-                    {
-                        <span>(Edited on @Model.UpdatedAt.Value.ToString("MMM dd, yyyy"))</span>
-                    }
-                </small>
-            </div>
+<div class="p-0" style="max-width: 700px; margin: 0 auto;">
+    @await Html.PartialAsync("Components/Post/_PostCard", postModel)
 
-            @if (!string.IsNullOrEmpty(Model.ImageUrl))
-            {
-                <img src="@Model.ImageUrl" class="img-fluid mb-3" alt="@Model.Title">
-            }
+    @if (Model.UserId == currentUserId)
+    {
+        <div class="mb-4 d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                Delete
+            </button>
+        </div>
+    }
 
-            <div class="mb-4">
-                <p class="lead">@Model.Description</p>
-            </div>
-
-            @if (Model.UserId == currentUserId)
-            {
-                <div class="mb-4">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                        Delete
-                    </button>
-                </div>
-            }
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-heart-fill text-danger"></i>
-                        @Model.Likes.Count Likes
-                    </h5>
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <form asp-action="ToggleLike" asp-route-id="@Model.Id" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn @(Model.Likes.Any(l => l.UserId == currentUserId) ? "btn-danger" : "btn-outline-danger")">
-                                <i class="bi bi-heart@(Model.Likes.Any(l => l.UserId == currentUserId) ? "-fill" : "")"></i>
-                                @(Model.Likes.Any(l => l.UserId == currentUserId) ? "Unlike" : "Like")
-                            </button>
-                        </form>
-                    }
-                </div>
-            </div>
-
-            <h3>Comments</h3>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title d-flex align-items-center gap-2">
+                <i class="bi bi-heart-fill text-danger"></i>
+                <span>@Model.Likes.Count Likes</span>
+            </h5>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <form asp-action="AddComment" method="post" class="mb-4">
+                <form asp-action="ToggleLike" asp-route-id="@Model.Id" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="inventionId" value="@Model.Id" />
-                    <div class="mb-3">
-                        <textarea name="content" class="form-control" rows="3" required placeholder="Share your thoughts..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                    <button type="submit" class="btn @(Model.Likes.Any(l => l.UserId == currentUserId) ? "btn-danger" : "btn-outline-danger")">
+                        <i class="bi bi-heart@(Model.Likes.Any(l => l.UserId == currentUserId) ? "-fill" : "")"></i>
+                        @(Model.Likes.Any(l => l.UserId == currentUserId) ? "Unlike" : "Like")
+                    </button>
                 </form>
             }
-
-            <div class="comments-section">
-                @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
-                {
-                    <div class="card mb-2">
-                        <div class="card-body">
-                            <p class="card-text">@comment.Content</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    By @comment.User.UserName on @comment.CreatedAt.ToString("MMM dd, yyyy")
-                                </small>
-                                @if (comment.UserId == currentUserId)
-                                {
-                                    <form asp-action="DeleteComment" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="commentId" value="@comment.Id" />
-                                        <input type="hidden" name="inventionId" value="@Model.Id" />
-                                        <button type="submit" class="btn btn-sm btn-danger" 
-                                                onclick="return confirm('Are you sure you want to delete this comment?')">
-                                            Delete
-                                        </button>
-                                    </form>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
         </div>
     </div>
+
+    <h3 class="mt-4 mb-3">Comments</h3>
+    @await Html.PartialAsync("Components/Comment/_CommentComposer", Model.Id)
+    @await Html.PartialAsync("Components/Comment/_CommentList", (Model.Comments.AsEnumerable(), currentUserId, Model.Id))
 </div>
 
 @if (Model.UserId == currentUserId)

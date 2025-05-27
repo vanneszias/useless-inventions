@@ -1,0 +1,43 @@
+<nav class="sidebar d-flex flex-column p-3 vh-100 border-end bg-white">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
+        <span class="fs-4 fw-bold"><i class="bi me-2"></i>Useless Inventions</span>
+    </a>
+    <ul class="nav nav-pills flex-column mb-auto mt-4">
+        <li class="nav-item mb-2">
+            <a href="/" class="nav-link text-dark">
+                <i class="bi bi-house-door me-2"></i> Home
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="/Inventions" class="nav-link text-dark">
+                <i class="bi bi-hash me-2"></i> Explore
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="#" class="nav-link text-dark disabled">
+                <i class="bi bi-bell me-2"></i> Notifications
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="#" class="nav-link text-dark disabled">
+                <i class="bi bi-envelope me-2"></i> Messages
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="#" class="nav-link text-dark disabled">
+                <i class="bi bi-bookmark me-2"></i> Bookmarks
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="/Identity/Account/Manage" class="nav-link text-dark">
+                <i class="bi bi-person me-2"></i> Profile
+            </a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="#" class="nav-link text-dark disabled">
+                <i class="bi bi-three-dots me-2"></i> More
+            </a>
+        </li>
+    </ul>
+    @await Html.PartialAsync("Components/User/_UserProfileCard")
+</nav> 

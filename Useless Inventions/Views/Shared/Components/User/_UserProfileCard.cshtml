@@ -1,0 +1,43 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@{
+    IdentityUser user = null;
+    if (SignInManager.IsSignedIn(User))
+    {
+        user = await UserManager.GetUserAsync(User);
+    }
+}
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="user-profile-card d-flex align-items-center p-3 border rounded mt-4 bg-light">
+        <img src="/images/avatar-placeholder.png" alt="Avatar" class="rounded-circle me-3" width="48" height="48" />
+        <div class="flex-grow-1">
+            <div class="fw-bold">@User.Identity?.Name</div>
+            <div class="text-muted small">@user?.Email</div>
+        </div>
+        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" class="ms-2">
+            <button type="submit" class="btn btn-outline-danger btn-sm" title="Logout">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+}
+else
+{
+    <div class="user-profile-card d-flex align-items-center p-3 border rounded mt-4 bg-light">
+        <img src="/images/avatar-placeholder.png" alt="Avatar" class="rounded-circle me-3" width="48" height="48" />
+        <div class="flex-grow-1">
+            <div class="fw-bold">Guest</div>
+            <div class="text-muted small">Not signed in</div>
+        </div>
+        <a class="btn btn-outline-primary btn-sm ms-2" asp-area="Identity" asp-page="/Account/Login" title="Login">
+            <i class="bi bi-box-arrow-in-right"></i>
+        </a>
+        <a class="btn btn-outline-secondary btn-sm ms-2" asp-area="Identity" asp-page="/Account/Register" title="Register">
+            <i class="bi bi-person-plus"></i>
+        </a>
+    </div>
+} 
