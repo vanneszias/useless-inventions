@@ -1,21 +1,13 @@
+@model IEnumerable<dynamic>
 <div class="card mt-4">
     <div class="card-header bg-white fw-bold">Trends for you</div>
     <ul class="list-group list-group-flush">
-        <li class="list-group-item">
-            <span class="text-muted small">Trending in Useless Tech</span><br />
-            <span class="fw-semibold">#SelfFoldingSocks</span>
-        </li>
-        <li class="list-group-item">
-            <span class="text-muted small">Trending in Gadgets</span><br />
-            <span class="fw-semibold">#BluetoothToothpick</span>
-        </li>
-        <li class="list-group-item">
-            <span class="text-muted small">Trending in Home</span><br />
-            <span class="fw-semibold">#RemoteControlSpoon</span>
-        </li>
-        <li class="list-group-item">
-            <span class="text-muted small">Trending in Fashion</span><br />
-            <span class="fw-semibold">#LEDShoelaces</span>
-        </li>
+        @foreach (var trend in Model)
+        {
+            <li class="list-group-item">
+                <span class="text-muted small">Trending</span><br />
+                <span class="fw-semibold">@trend.Tag</span> <span class="text-muted small">(@trend.Count)</span>
+            </li>
+        }
     </ul>
 </div> 

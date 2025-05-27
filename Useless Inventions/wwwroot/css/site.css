@@ -12,6 +12,9 @@ body {
   font-family: 'Inter', Arial, sans-serif;
   margin: 0;
   min-height: 100vh;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 header {
@@ -156,9 +159,16 @@ input, textarea, select {
   color: var(--text) !important;
 }
 
-/* Make sure all card/list-group backgrounds and text are dark-mode friendly */
-.card, .bg-white, .bg-light, .modal-content, .dropdown-menu, .popover, .list-group-item, .card-header, .card-footer {
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  border-color: var(--border) !important;
+/* Glassmorphism card style */
+.glass-card {
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 2px 8px 0 rgba(31,38,135,0.10);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.18);
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+    transition: box-shadow 0.2s;
 }

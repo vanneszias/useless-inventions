@@ -1,14 +1,7 @@
-@model IEnumerable<Useless_Inventions.Models.Invention>
+@model Useless_Inventions.Models.FeedViewModel
 
 @{
     ViewData["Title"] = "Useless Inventions";
-}
-
-@if (User.Identity?.IsAuthenticated == true)
-{
-    <div class="text-end mb-4">
-        <a asp-action="Create" class="btn btn-primary">Share Your Invention</a>
-    </div>
 }
 
 @await Html.PartialAsync("Components/Feed/_Feed", Model)

@@ -1,53 +1,47 @@
 @using Useless_Inventions.Models
-@model IEnumerable<Invention>?
+@model FeedViewModel
 
 <main class="feed-main">
     <div class="p-1 p-md-3" style="max-width: 600px; margin: 0 auto;">
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <div class="card mb-4 shadow-sm rounded-4">
-                <div class="card-body d-flex">
-                    <img src="/images/avatar-placeholder.png" class="rounded-circle me-3" width="48" height="48" alt="User">
-                    <form class="flex-grow-1">
-                        <textarea class="form-control mb-2" rows="2" placeholder="What's happening?"></textarea>
+            <div class="glass-card p-3 mb-4 border-0 shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column flex-md-row gap-3 align-items-start">
+                    <img src="/images/avatar-placeholder.png" class="rounded-circle" width="40" height="40" alt="User" />
+        
+                    <form asp-action="Create" asp-controller="Inventions" method="post" class="w-100">
+                        <div class="mb-2">
+                            <input asp-for="NewInvention.Title" class="form-control form-control-sm mb-2" placeholder="What's it called?" maxlength="100" required />
+                            <span asp-validation-for="NewInvention.Title" class="text-danger small"></span>
+        
+                            <textarea asp-for="NewInvention.Description" class="form-control form-control-sm mb-2" rows="2" placeholder="Describe your useless invention..." maxlength="500" required></textarea>
+                            <span asp-validation-for="NewInvention.Description" class="text-danger small"></span>
+        
+                            <input asp-for="NewInvention.ImageUrl" class="form-control form-control-sm mb-2" placeholder="Image URL (optional)" />
+                            <span asp-validation-for="NewInvention.ImageUrl" class="text-danger small"></span>
+                        </div>
+        
                         <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary btn-sm">Post</button>
+                            <button type="submit" class="btn glass-btn-mini btn-sm rounded-pill px-3">
+                                <i class="bi bi-send me-1"></i> Share
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         }
-        @if (Model != null)
+
+        @if (Model.Posts != null)
         {
-            @foreach (var invention in Model)
+            foreach (var postModel in Model.Posts)
             {
-                var postModel = new {
-                    User = "@" + invention.User?.UserName,
-                    Content = invention.Title + ": " + (invention.Description.Length > 150 ? invention.Description.Substring(0, 147) + "..." : invention.Description),
-                    Time = invention.CreatedAt.ToString("MMM dd, yyyy"),
-                    Likes = invention.Likes?.Count ?? 0,
-                    Comments = invention.Comments?.Count ?? 0,
-                    ImageUrl = invention.ImageUrl,
-                    Id = invention.Id
-                };
                 <div class="mb-3">
                     @await Html.PartialAsync("Components/Post/_PostCard", postModel)
                 </div>
             }
         }
-        else
-        {
-            var posts = new[] {
-                new { User = "@InventorJoe", Content = "Introducing the #SelfFoldingSocks! Never bend down again.", Time = "2m", Likes = 12, Comments = 3, Id = 0, ImageUrl = (string?)null },
-                new { User = "@GadgetGal", Content = "Why use a normal toothpick when you can have a #BluetoothToothpick?", Time = "10m", Likes = 8, Comments = 1, Id = 1, ImageUrl = (string?)null },
-                new { User = "@HomeHacker", Content = "Remote control for your spoon. Because why not? #RemoteControlSpoon", Time = "30m", Likes = 5, Comments = 0, Id = 2, ImageUrl = (string?)null }
-            };
-            foreach (var post in posts)
-            {
-                <div class="mb-3">
-                    @await Html.PartialAsync("Components/Post/_PostCard", post)
-                </div>
-            }
-        }
     </div>
-</main> 
+</main>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

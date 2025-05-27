@@ -1,43 +1,63 @@
-<nav class="sidebar d-flex flex-column p-3 vh-100 border-end bg-white">
+@using Useless_Inventions.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@{
+    var profileModel = new UserProfileCardViewModel();
+    if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        profileModel.UserName = User.Identity?.Name ?? "User";
+        profileModel.Email = user?.Email ?? "";
+        profileModel.AvatarUrl = "/images/avatar-placeholder.png";
+        profileModel.IsCurrentUser = true;
+    }
+    else
+    {
+        profileModel.UserName = "Guest";
+        profileModel.Email = "Not signed in";
+        profileModel.AvatarUrl = "/images/avatar-placeholder.png";
+        profileModel.IsCurrentUser = false;
+    }
+}
+<nav class="sidebar d-flex flex-column p-3 vh-100 border-end">
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
         <span class="fs-4 fw-bold"><i class="bi me-2"></i>Useless Inventions</span>
     </a>
     <ul class="nav nav-pills flex-column mb-auto mt-4">
         <li class="nav-item mb-2">
-            <a href="/" class="nav-link text-dark">
+            <a href="/" class="nav-link text-dark sidebar-link">
                 <i class="bi bi-house-door me-2"></i> Home
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="/Inventions" class="nav-link text-dark">
+            <a href="/Inventions" class="nav-link text-dark sidebar-link">
                 <i class="bi bi-hash me-2"></i> Explore
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="#" class="nav-link text-dark disabled">
-                <i class="bi bi-bell me-2"></i> Notifications
-            </a>
-        </li>
-        <li class="nav-item mb-2">
-            <a href="#" class="nav-link text-dark disabled">
-                <i class="bi bi-envelope me-2"></i> Messages
-            </a>
-        </li>
-        <li class="nav-item mb-2">
-            <a href="#" class="nav-link text-dark disabled">
-                <i class="bi bi-bookmark me-2"></i> Bookmarks
-            </a>
-        </li>
-        <li class="nav-item mb-2">
-            <a href="/Identity/Account/Manage" class="nav-link text-dark">
+            <a href="/Identity/Account/Manage" class="nav-link text-dark sidebar-link">
                 <i class="bi bi-person me-2"></i> Profile
             </a>
         </li>
-        <li class="nav-item mb-2">
-            <a href="#" class="nav-link text-dark disabled">
-                <i class="bi bi-three-dots me-2"></i> More
-            </a>
-        </li>
     </ul>
-    @await Html.PartialAsync("Components/User/_UserProfileCard")
-</nav> 
+    @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)
+</nav>
+
+<style>
+.sidebar-link {
+    transition: background-color 0.2s ease;
+    border-radius: 0.375rem;
+}
+
+.sidebar-link:hover {
+    background-color:rgb(108, 108, 108) !important;
+    text-decoration: none !important;
+}
+
+.sidebar-link:focus {
+    background-color:rgb(108, 108, 108);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgb(0, 0, 0);
+}
+</style>

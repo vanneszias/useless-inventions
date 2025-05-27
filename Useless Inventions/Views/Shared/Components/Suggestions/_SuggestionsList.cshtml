@@ -1,29 +1,24 @@
-<div class="card mt-4">
-    <div class="card-header bg-white fw-bold">Who to follow</div>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item d-flex align-items-center">
-            <img src="/images/avatar-placeholder.png" class="rounded-circle me-2" width="32" height="32" alt="User">
-            <div class="flex-grow-1">
-                <div class="fw-semibold">@@InventorJoe</div>
-                <div class="text-muted small">Inventor of #SelfFoldingSocks</div>
-            </div>
-            <button class="btn btn-outline-primary btn-sm ms-2">Follow</button>
-        </li>
-        <li class="list-group-item d-flex align-items-center">
-            <img src="/images/avatar-placeholder.png" class="rounded-circle me-2" width="32" height="32" alt="User">
-            <div class="flex-grow-1">
-                <div class="fw-semibold">@@GadgetGal</div>
-                <div class="text-muted small">Creator of #BluetoothToothpick</div>
-            </div>
-            <button class="btn btn-outline-primary btn-sm ms-2">Follow</button>
-        </li>
-        <li class="list-group-item d-flex align-items-center">
-            <img src="/images/avatar-placeholder.png" class="rounded-circle me-2" width="32" height="32" alt="User">
-            <div class="flex-grow-1">
-                <div class="fw-semibold">@@HomeHacker</div>
-                <div class="text-muted small">#RemoteControlSpoon enthusiast</div>
-            </div>
-            <button class="btn btn-outline-primary btn-sm ms-2">Follow</button>
-        </li>
-    </ul>
-</div> 
+@using Useless_Inventions.Models
+@model IEnumerable<dynamic>
+<div class="suggestions-list mt-4">
+    <div class="fw-bold mb-2 ps-1" style="font-size:1.08rem;">Who to follow</div>
+    <div class="d-flex flex-column gap-3">
+        @foreach (var suggestion in Model)
+        {
+            var profileModel = new UserProfileCardViewModel {
+                UserName = suggestion.User.UserName,
+                Email = "", // or suggestion.User.Email if available
+                AvatarUrl = "/images/avatar-placeholder.png",
+                InventionCount = suggestion.InventionCount,
+                ShowFollowButton = true,
+                IsCurrentUser = false
+            };
+            @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)
+        }
+    </div>
+</div>
+<style>
+.suggestions-list {
+    max-width: 340px;
+}
+</style> 

@@ -1,19 +1,21 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Identity.UI
+@using Useless_Inventions.Models
 @model Useless_Inventions.Models.Invention
 @inject UserManager<IdentityUser> UserManager
 
 @{
     ViewData["Title"] = Model.Title;
     var currentUserId = UserManager.GetUserId(User);
-    var postModel = new {
+    var postModel = new PostViewModel {
         User = "@" + Model.User?.UserName,
         Content = Model.Title + ": " + Model.Description,
         Time = Model.CreatedAt.ToString("MMM dd, yyyy"),
         Likes = Model.Likes?.Count ?? 0,
         Comments = Model.Comments?.Count ?? 0,
         ImageUrl = Model.ImageUrl,
-        Id = Model.Id
+        Id = Model.Id,
+        IsLiked = Model.Likes != null && Model.Likes.Any(l => l.UserId == currentUserId)
     };
 }
 
@@ -29,25 +31,6 @@
             </button>
         </div>
     }
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title d-flex align-items-center gap-2">
-                <i class="bi bi-heart-fill text-danger"></i>
-                <span>@Model.Likes.Count Likes</span>
-            </h5>
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <form asp-action="ToggleLike" asp-route-id="@Model.Id" method="post" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn @(Model.Likes.Any(l => l.UserId == currentUserId) ? "btn-danger" : "btn-outline-danger")">
-                        <i class="bi bi-heart@(Model.Likes.Any(l => l.UserId == currentUserId) ? "-fill" : "")"></i>
-                        @(Model.Likes.Any(l => l.UserId == currentUserId) ? "Unlike" : "Like")
-                    </button>
-                </form>
-            }
-        </div>
-    </div>
 
     <h3 class="mt-4 mb-3">Comments</h3>
     @await Html.PartialAsync("Components/Comment/_CommentComposer", Model.Id)
