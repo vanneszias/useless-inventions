@@ -1,0 +1,24 @@
+@using Useless_Inventions.Models
+@model IEnumerable<dynamic>
+<div class="suggestions-list mt-4">
+    <div class="fw-bold mb-2 ps-1" style="font-size:1.08rem;">Who to follow</div>
+    <div class="d-flex flex-column gap-3">
+        @foreach (var suggestion in Model)
+        {
+            var profileModel = new UserProfileCardViewModel {
+                UserName = suggestion.User.UserName,
+                Email = "", // or suggestion.User.Email if available
+                AvatarUrl = "/images/avatar-placeholder.png",
+                InventionCount = suggestion.InventionCount,
+                ShowFollowButton = true,
+                IsCurrentUser = false
+            };
+            @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)
+        }
+    </div>
+</div>
+<style>
+.suggestions-list {
+    max-width: 340px;
+}
+</style> 

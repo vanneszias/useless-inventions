@@ -4,38 +4,30 @@
     ViewData["Title"] = "Edit Invention";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h2>Edit Your Useless Invention</h2>
-        <hr />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        
-        <form asp-action="Edit" method="post">
+<div class="card mt-4 mb-4">
+    <div class="card-header bg-white fw-bold">
+        Edit Invention
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit">
             <input type="hidden" asp-for="Id" />
-            
             <div class="mb-3">
                 <label asp-for="Title" class="form-label"></label>
                 <input asp-for="Title" class="form-control" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
-            
             <div class="mb-3">
                 <label asp-for="Description" class="form-label"></label>
-                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            
             <div class="mb-3">
-                <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                <label asp-for="ImageUrl" class="form-label"></label>
                 <input asp-for="ImageUrl" class="form-control" />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                <small class="form-text text-muted">Enter a URL to an image of your invention</small>
             </div>
-            
-            <div class="mb-3">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
         </form>
     </div>
 </div>

@@ -4,70 +4,98 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Useless Inventions</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg fixed-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-lightbulb text-primary me-2"></i>Useless Inventions
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link px-3" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-door me-1"></i>Home
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3" asp-controller="Inventions" asp-action="Index">
-                                <i class="bi bi-grid me-1"></i>Browse
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3" asp-controller="Inventions" asp-action="Create">
-                                <i class="bi bi-plus-circle me-1"></i>Share Invention
-                            </a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
+    <div class="container-fluid">
+        <div class="d-flex flex-row">
+            <!-- Left Sidebar -->
+            <aside class="left-sidebar d-none d-md-block" style="width: 220px;">
+                <div class="sidebar-inner position-sticky top-0" style="height: 100vh;">
+                    @await Html.PartialAsync("Components/Sidebar/_SidebarNavigation")
                 </div>
-            </div>
-        </nav>
-    </header>
+            </aside>
 
-    <div class="main-content">
-        <main role="main">
-            @RenderBody()
-        </main>
+            <!-- Main Feed -->
+            <main class="main-feed flex-grow-1" role="main">
+                <div class="p-3 feed-scroll" style="max-width: 100%; height: 100vh; overflow-y: auto;">
+                    @RenderBody()
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="right-sidebar d-none d-md-block" style="width: 320px;">
+                <div class="p-3 position-sticky top-0" style="z-index: 10; height: 100vh;">
+                    @await Html.PartialAsync("Components/Search/_SearchBar")
+                    @await Component.InvokeAsync("Trends")
+                    @await Component.InvokeAsync("Suggestions")
+                </div>
+            </aside>
+        </div>
     </div>
 
-    <footer class="footer mt-auto">
-        <div class="container">
-            <div class="row py-4">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2025 Useless Inventions</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none">Privacy Policy</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <style>
+        .left-sidebar,
+        .right-sidebar {
+            background: transparent !important;
+            box-shadow: none !important;
+            color: var(--text) !important;
+        }
+        .left-sidebar a,
+        .right-sidebar a {
+            color: var(--text) !important;
+            transition: color 0.2s ease;
+        }
+        .left-sidebar a:hover,
+        .right-sidebar a:hover {
+            color: var(--primary) !important;
+        }
+        .left-sidebar {
+            border-right: 1px solid var(--bs-border-color, #333);
+        }
+        .right-sidebar {
+            border-left: 1px solid var(--bs-border-color, #333);
+        }
+        @@ media (min-width: 992px) {
+            .left-sidebar {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 220px;
+                z-index: 101;
+                overflow-y: auto;
+                border-right: 1px solid var(--bs-border-color, #333);
+            }
+            .right-sidebar {
+                position: fixed !important;
+                top: 0;
+                right: 0;
+                height: 100vh;
+                width: 320px;
+                z-index: 100;
+                overflow-y: auto;
+                border-left: 1px solid var(--bs-border-color, #333);
+            }
+            .main-feed {
+                margin-left: 220px;
+                margin-right: 320px;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            .feed-scroll {
+                height: 100%;
+                overflow-y: auto;
+                scrollbar-width: thin;
+            }
+        }
+    </style>
 </body>
 </html>

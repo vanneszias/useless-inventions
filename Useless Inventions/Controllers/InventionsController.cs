@@ -21,12 +21,29 @@ public class InventionsController : Controller
     // GET: Inventions
     public async Task<IActionResult> Index()
     {
-        IList<Invention> inventions = await _context.Inventions
+        var currentUserId = _userManager.GetUserId(User);
+        var inventions = await _context.Inventions
             .Include(i => i.User)
             .Include(i => i.Likes)
+            .Include(i => i.Comments)
             .OrderByDescending(i => i.CreatedAt)
+            .Take(20)
             .ToListAsync();
-        return View(inventions);
+        var postModels = inventions.Select(i => new PostViewModel {
+            Id = i.Id,
+            User = "@" + (i.User?.UserName ?? "Unknown"),
+            Content = i.Title + ": " + (i.Description.Length > 150 ? i.Description.Substring(0, 147) + "..." : i.Description),
+            Time = i.CreatedAt.ToString("MMM dd, yyyy"),
+            Likes = i.Likes?.Count ?? 0,
+            Comments = i.Comments?.Count ?? 0,
+            ImageUrl = i.ImageUrl,
+            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId)
+        }).ToList();
+        var feedViewModel = new FeedViewModel {
+            Posts = postModels,
+            NewInvention = new Invention()
+        };
+        return View(feedViewModel);
     }
 
     // GET: Inventions/Details/5
@@ -52,19 +69,13 @@ public class InventionsController : Controller
         return View(invention);
     }
 
-    // GET: Inventions/Create
-    [Authorize]
-    public IActionResult Create()
-    {
-        return View();
-    }
-
     // POST: Inventions/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("Title,Description,ImageUrl")] Invention invention)
+    public async Task<IActionResult> Create(FeedViewModel feedViewModel)
     {
+        var invention = feedViewModel.NewInvention;
         // Set required user properties before validation
         invention.UserId = _userManager.GetUserId(User)!;
         invention.CreatedAt = DateTime.UtcNow;
@@ -76,7 +87,7 @@ public class InventionsController : Controller
         {
             _context.Add(invention);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Home");
         }
 
         ModelState.AddModelError(string.Empty, "Invalid data. Please check your input.");
@@ -84,7 +95,27 @@ public class InventionsController : Controller
         {
             Console.WriteLine(error.ErrorMessage);
         }
-        return View(invention);
+        // Repopulate posts for the feed
+        var currentUserId = _userManager.GetUserId(User);
+        var inventions = await _context.Inventions
+            .Include(i => i.User)
+            .Include(i => i.Likes)
+            .Include(i => i.Comments)
+            .OrderByDescending(i => i.CreatedAt)
+            .Take(20)
+            .ToListAsync();
+        var postModels = inventions.Select(i => new PostViewModel {
+            Id = i.Id,
+            User = "@" + (i.User?.UserName ?? "Unknown"),
+            Content = i.Title + ": " + (i.Description.Length > 150 ? i.Description.Substring(0, 147) + "..." : i.Description),
+            Time = i.CreatedAt.ToString("MMM dd, yyyy"),
+            Likes = i.Likes?.Count ?? 0,
+            Comments = i.Comments?.Count ?? 0,
+            ImageUrl = i.ImageUrl,
+            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId)
+        }).ToList();
+        feedViewModel.Posts = postModels;
+        return View("Index", feedViewModel);
     }
 
     // POST: Inventions/Comment

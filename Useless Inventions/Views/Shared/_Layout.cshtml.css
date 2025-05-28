@@ -1,48 +1,72 @@
 ﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+
+html, body {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 16px;
+  min-height: 100vh;
 }
 
-a {
-  color: #0077cc;
+a, a:visited, a:active {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: #0d6efd;
+  background: rgba(255,255,255,0.32);
+  border-color: #0d6efd;
+  text-decoration: underline;
 }
 
-.btn-primary {
+.btn, button {
+  background: var(--accent);
   color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  transition: background 0.2s, color 0.2s;
 }
-
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+.btn:hover, button:hover {
+  background: #3561b7;
   color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
+.btn-primary, .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
 }
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+.text-primary {
+  color: var(--accent) !important;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
+.border-top, .border-bottom, .border-end, .border-start {
+  border-color: var(--border) !important;
 }
 
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+input, textarea, .form-control, .input-group-text {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px;
+}
+input:focus, textarea:focus, .form-control:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  background: var(--background) !important;
+  color: #fff !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
 }
