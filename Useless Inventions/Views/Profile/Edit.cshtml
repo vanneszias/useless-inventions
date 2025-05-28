@@ -1,0 +1,44 @@
+@model Useless_Inventions.Models.UserProfileCardViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+<h2>Edit Profile</h2>
+<form asp-action="Edit" method="post" enctype="multipart/form-data" class="mt-4" style="max-width: 400px;">
+    <div class="mb-3">
+        <label asp-for="UserName" class="form-label">Username</label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        @await Html.PartialAsync("~/Views/Shared/Components/UploadPicture/UploadPicture.cshtml")
+        <input type="hidden" id="AvatarUrl" name="AvatarUrl" value="@Model.AvatarUrl" />
+        <span asp-validation-for="AvatarUrl" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a asp-action="Index" asp-route-username="@Model.UserName" class="btn btn-secondary ms-2">Cancel</a>
+</form>
+<script>
+// Intercept file input and upload to server
+const avatarInput = document.querySelector('.upload-picture-component input[type="file"]');
+if (avatarInput) {
+    avatarInput.addEventListener('change', async function() {
+        if (this.files && this.files[0]) {
+            const formData = new FormData();
+            formData.append('uploadedImage', this.files[0]);
+            const response = await fetch('/Profile/UploadAvatar', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('AvatarUrl').value = data.imageUrl;
+            }
+        }
+    });
+}
+</script> 

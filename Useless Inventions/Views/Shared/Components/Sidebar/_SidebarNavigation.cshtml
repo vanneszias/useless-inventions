@@ -1,7 +1,7 @@
 @using Useless_Inventions.Models
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @{
     var profileModel = new UserProfileCardViewModel();
     if (SignInManager.IsSignedIn(User))
@@ -9,14 +9,14 @@
         var user = await UserManager.GetUserAsync(User);
         profileModel.UserName = User.Identity?.Name ?? "User";
         profileModel.Email = user?.Email ?? "";
-        profileModel.AvatarUrl = "/images/avatar-placeholder.png";
+        profileModel.AvatarUrl = user?.AvatarUrl;
         profileModel.IsCurrentUser = true;
     }
     else
     {
         profileModel.UserName = "Guest";
         profileModel.Email = "Not signed in";
-        profileModel.AvatarUrl = "/images/avatar-placeholder.png";
+        profileModel.AvatarUrl = null;
         profileModel.IsCurrentUser = false;
     }
 }
@@ -36,9 +36,18 @@
             </a>
         </li>
         <li class="nav-item mb-2">
-            <a href="/Identity/Account/Manage" class="nav-link text-dark sidebar-link">
-                <i class="bi bi-person me-2"></i> Profile
-            </a>
+            @if (profileModel.IsCurrentUser)
+            {
+                <a href="/profile/@profileModel.UserName" class="nav-link text-dark sidebar-link">
+                    <i class="bi bi-person me-2"></i> Profile
+                </a>
+            }
+            else
+            {
+                <a href="/Identity/Account/Login" class="nav-link text-dark sidebar-link">
+                    <i class="bi bi-person me-2"></i> Profile
+                </a>
+            }
         </li>
     </ul>
     @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)

@@ -1,9 +1,11 @@
 @model Useless_Inventions.Models.UserProfileCardViewModel
 
 <div class="glass-card user-profile-mini d-flex align-items-center gap-3 p-2 my-2 mx-auto flex-wrap flex-md-nowrap">
-    <img src="@(Model.AvatarUrl ?? "/images/avatar-placeholder.png")" alt="Avatar" class="profile-avatar-mini flex-shrink-0" width="36" height="36" />
+    <img src="@Model.AvatarUrl" alt="Avatar" class="profile-avatar-mini flex-shrink-0" width="36" height="36" />
     <div class="flex-grow-1 text-truncate">
-        <div class="fw-semibold profile-name-mini text-truncate">@Model.UserName</div>
+        <div class="fw-semibold profile-name-mini text-truncate">
+            <a href="/profile/@Model.UserName" class="text-dark text-decoration-none">@Model.UserName</a>
+        </div>
         <div class="text-muted small profile-email-mini text-truncate">@Model.Email</div>
         @if (Model.InventionCount.HasValue)
         {
@@ -13,7 +15,20 @@
     <div class="d-flex gap-1 ms-auto mt-2 mt-md-0">
         @if (Model.ShowFollowButton)
         {
-            <button class="btn glass-btn-mini btn-sm px-2">Follow</button>
+            if (Model.IsFollowing)
+            {
+                <form asp-controller="Profile" asp-action="Unfollow" method="post" class="d-inline">
+                    <input type="hidden" name="username" value="@Model.UserName" />
+                    <button type="submit" class="btn glass-btn-mini btn-sm px-2">Unfollow</button>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="Profile" asp-action="Follow" method="post" class="d-inline">
+                    <input type="hidden" name="username" value="@Model.UserName" />
+                    <button type="submit" class="btn glass-btn-mini btn-sm px-2">Follow</button>
+                </form>
+            }
         }
         else if (Model.IsCurrentUser)
         {

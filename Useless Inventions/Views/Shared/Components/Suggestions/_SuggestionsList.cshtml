@@ -8,10 +8,11 @@
             var profileModel = new UserProfileCardViewModel {
                 UserName = suggestion.User.UserName,
                 Email = "", // or suggestion.User.Email if available
-                AvatarUrl = "/images/avatar-placeholder.png",
+                AvatarUrl = suggestion.User.AvatarUrl,
                 InventionCount = suggestion.InventionCount,
                 ShowFollowButton = true,
-                IsCurrentUser = false
+                IsCurrentUser = false,
+                IsFollowing = suggestion.IsFollowing
             };
             @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)
         }

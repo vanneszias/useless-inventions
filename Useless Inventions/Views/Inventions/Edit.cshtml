@@ -9,7 +9,7 @@
         Edit Invention
     </div>
     <div class="card-body">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <input type="hidden" asp-for="Id" />
             <div class="mb-3">
                 <label asp-for="Title" class="form-label"></label>
@@ -22,8 +22,8 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="ImageUrl" class="form-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
+                @await Html.PartialAsync("~/Views/Shared/Components/UploadPicture/UploadPicture.cshtml")
+                <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model.ImageUrl" />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">Save</button>
@@ -31,6 +31,28 @@
         </form>
     </div>
 </div>
+
+<script>
+// Intercept file input and upload to server
+const inventionEditInput = document.querySelector('.upload-picture-component input[type="file"]');
+if (inventionEditInput) {
+    inventionEditInput.addEventListener('change', async function() {
+        if (this.files && this.files[0]) {
+            const formData = new FormData();
+            formData.append('uploadedImage', this.files[0]);
+            formData.append('inventionId', '@Model.Id');
+            const response = await fetch('/Inventions/UploadInventionImage', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('ImageUrl').value = data.imageUrl;
+            }
+        }
+    });
+}
+</script>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

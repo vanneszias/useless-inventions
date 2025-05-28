@@ -5,11 +5,15 @@
     <div class="p-1 p-md-3" style="max-width: 600px; margin: 0 auto;">
         @if (User.Identity?.IsAuthenticated == true)
         {
+            var userManagerObj = Context.RequestServices.GetService(typeof(UserManager<Useless_Inventions.Models.ApplicationUser>));
+            var userManager = userManagerObj as UserManager<Useless_Inventions.Models.ApplicationUser>;
+            var currentUser = userManager != null ? await userManager.GetUserAsync(User) : null;
+            var avatarUrl = currentUser?.AvatarUrl;
             <div class="glass-card p-3 mb-4 border-0 shadow-sm rounded-4">
                 <div class="card-body d-flex flex-column flex-md-row gap-3 align-items-start">
-                    <img src="/images/avatar-placeholder.png" class="rounded-circle" width="40" height="40" alt="User" />
+                    <img src="@avatarUrl" class="rounded-circle" width="40" height="40" alt="User" />
         
-                    <form asp-action="Create" asp-controller="Inventions" method="post" class="w-100">
+                    <form asp-action="Create" asp-controller="Inventions" method="post" enctype="multipart/form-data" class="w-100">
                         <div class="mb-2">
                             <input asp-for="NewInvention.Title" class="form-control form-control-sm mb-2" placeholder="What's it called?" maxlength="100" required />
                             <span asp-validation-for="NewInvention.Title" class="text-danger small"></span>
@@ -17,7 +21,8 @@
                             <textarea asp-for="NewInvention.Description" class="form-control form-control-sm mb-2" rows="2" placeholder="Describe your useless invention..." maxlength="500" required></textarea>
                             <span asp-validation-for="NewInvention.Description" class="text-danger small"></span>
         
-                            <input asp-for="NewInvention.ImageUrl" class="form-control form-control-sm mb-2" placeholder="Image URL (optional)" />
+                            @await Html.PartialAsync("~/Views/Shared/Components/UploadPicture/UploadPicture.cshtml")
+                            <input type="hidden" id="ImageUrl" name="NewInvention.ImageUrl" value="@Model.NewInvention.ImageUrl" />
                             <span asp-validation-for="NewInvention.ImageUrl" class="text-danger small"></span>
                         </div>
         
@@ -42,6 +47,60 @@
         }
     </div>
 </main>
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-} 
+@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+let inventionImageUploading = false;
+document.addEventListener('change', async function(event) {
+    const target = event.target;
+    if (target.matches('.upload-picture-component input[type="file"]')) {
+        if (target.files && target.files[0]) {
+            const form = target.closest('form');
+            const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+            if (submitBtn) submitBtn.disabled = true;
+            inventionImageUploading = true;
+            const formData = new FormData();
+            formData.append('uploadedImage', target.files[0]);
+            try {
+                const response = await fetch('/Inventions/UploadInventionImage', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (form) {
+                        const imageUrlInput = form.querySelector('input[name="NewInvention.ImageUrl"]');
+                        if (imageUrlInput) {
+                            imageUrlInput.value = data.imageUrl;
+                        }
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                    inventionImageUploading = false;
+                } else {
+                    if (submitBtn) submitBtn.disabled = false;
+                    inventionImageUploading = false;
+                    alert('Image upload failed. Please try again.');
+                }
+            } catch (err) {
+                if (submitBtn) submitBtn.disabled = false;
+                inventionImageUploading = false;
+                alert('Image upload failed. Please try again.');
+            }
+        }
+    }
+});
+// Prevent form submit if image is uploading
+document.addEventListener('submit', function(event) {
+    const form = event.target;
+    if (form.matches('form[asp-action="Create"]')) {
+        if (inventionImageUploading) {
+            event.preventDefault();
+            alert('Please wait for the image to finish uploading before submitting.');
+            return false;
+        }
+    }
+}, true);
+// On page load, ensure submit button is enabled (in case of navigation)
+document.querySelectorAll('form[asp-action="Create"] button[type="submit"]').forEach(function(btn) {
+    btn.disabled = false;
+});
+</script> 

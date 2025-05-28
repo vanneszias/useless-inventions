@@ -4,15 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Useless_Inventions.Data;
 using Useless_Inventions.Models;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace Useless_Inventions.Controllers;
 
 public class InventionsController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public InventionsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    public InventionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
@@ -37,7 +39,8 @@ public class InventionsController : Controller
             Likes = i.Likes?.Count ?? 0,
             Comments = i.Comments?.Count ?? 0,
             ImageUrl = i.ImageUrl,
-            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId)
+            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId),
+            AvatarUrl = i.User?.AvatarUrl
         }).ToList();
         var feedViewModel = new FeedViewModel {
             Posts = postModels,
@@ -112,7 +115,8 @@ public class InventionsController : Controller
             Likes = i.Likes?.Count ?? 0,
             Comments = i.Comments?.Count ?? 0,
             ImageUrl = i.ImageUrl,
-            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId)
+            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId),
+            AvatarUrl = i.User?.AvatarUrl
         }).ToList();
         feedViewModel.Posts = postModels;
         return View("Index", feedViewModel);
@@ -296,6 +300,49 @@ public class InventionsController : Controller
         _context.Inventions.Remove(invention);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> UploadInventionImage(IFormFile uploadedImage, int inventionId = 0)
+    {
+        try
+        {
+            if (uploadedImage == null || uploadedImage.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/uploads/inventions");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var fileName = $"invention_{User.Identity.Name}_{Guid.NewGuid():N}{Path.GetExtension(uploadedImage.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await uploadedImage.CopyToAsync(stream);
+            }
+            var relativePath = $"/images/uploads/inventions/{fileName}";
+
+            // Only update invention if inventionId is provided and not zero
+            if (inventionId != 0)
+            {
+                var invention = await _context.Inventions.FindAsync(inventionId);
+                if (invention != null)
+                {
+                    invention.ImageUrl = relativePath;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return Json(new { imageUrl = relativePath });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Image upload failed.");
+        }
     }
 
     private bool InventionExists(int id)
