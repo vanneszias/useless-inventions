@@ -4,7 +4,7 @@ using Useless_Inventions.Models;
 
 namespace Useless_Inventions.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -14,6 +14,7 @@ namespace Useless_Inventions.Data
         public DbSet<Invention> Inventions { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
+        public DbSet<Follow> Follows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -59,6 +60,21 @@ namespace Useless_Inventions.Data
             builder.Entity<Like>()  
                 .HasIndex(l => new { l.UserId, l.InventionId })  
                 .IsUnique();  
+
+            builder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany()
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Follow>()
+                .HasOne(f => f.Followee)
+                .WithMany()
+                .HasForeignKey(f => f.FolloweeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Follow>()
+                .HasIndex(f => new { f.FollowerId, f.FolloweeId }).IsUnique();
         }
     }
 }

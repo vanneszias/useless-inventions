@@ -4,7 +4,10 @@
 <div class="glass-card mb-3 border-0 post-card h-100">
     <div class="card-body p-4">
         <div class="d-flex align-items-start mb-3">
-            <img src="/images/avatar-placeholder.png" class="rounded-circle me-3 flex-shrink-0" width="48" height="48" alt="User">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" class="rounded-circle me-3 flex-shrink-0" width="48" height="48" alt="User">
+            }
             <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="fw-bold text-primary">@Model.User</span>
@@ -53,7 +56,6 @@
     
     @if (Model.Id != null)
     {
-        <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const form = document.getElementById('likeForm-@Model.Id');
@@ -92,26 +94,14 @@
                                 heartIcon.className = 'bi bi-heart-fill me-2 heart-icon';
                             }
                         }
-                        showToast('Like updated!', 'success');
                     } catch (err) {
-                        showToast('Failed to toggle like.', 'danger');
+                        console.error('Error:', err);
                     } finally {
                         btn.disabled = false;
                         btn.querySelector('.default-text').classList.remove('d-none');
                         btn.querySelector('.spinner-border').classList.add('d-none');
                     }
                 });
-                function showToast(message, type) {
-                    const container = document.getElementById('toast-container');
-                    const toast = document.createElement('div');
-                    toast.className = `toast align-items-center border-0 show mb-2 bg-dark text-white`;
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    toast.innerHTML = `<div class='d-flex'><div class='toast-body' style='font-weight:600;'>${message}</div><button type='button' class='btn-close btn-close-white me-2 m-auto' data-bs-dismiss='toast' aria-label='Close'></button></div>`;
-                    container.appendChild(toast);
-                    setTimeout(() => toast.remove(), 3000);
-                }
             });
         </script>
     }

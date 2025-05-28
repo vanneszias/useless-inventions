@@ -9,8 +9,8 @@ namespace Useless_Inventions.ViewComponents;
 public class FeedViewComponent : ViewComponent
 {
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
-    public FeedViewComponent(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    private readonly UserManager<ApplicationUser> _userManager;
+    public FeedViewComponent(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
@@ -19,12 +19,17 @@ public class FeedViewComponent : ViewComponent
     public async Task<IViewComponentResult> InvokeAsync()
     {
         var currentUserId = _userManager.GetUserId(HttpContext.User);
+        var followedUserIds = await _context.Follows
+            .Where(f => f.FollowerId == currentUserId)
+            .Select(f => f.FolloweeId)
+            .ToListAsync();
+        followedUserIds.Add(currentUserId); // include own posts
         var inventions = await _context.Inventions
             .Include(i => i.User)
             .Include(i => i.Likes)
             .Include(i => i.Comments)
-            .OrderByDescending(i => i.Likes.Count)
-            .ThenByDescending(i => i.Comments.Count)
+            .Where(i => followedUserIds.Contains(i.UserId))
+            .OrderByDescending(i => i.CreatedAt)
             .Take(20)
             .ToListAsync();
         var postModels = inventions.Select(i => new PostViewModel {
@@ -35,7 +40,8 @@ public class FeedViewComponent : ViewComponent
             Likes = i.Likes?.Count ?? 0,
             Comments = i.Comments?.Count ?? 0,
             ImageUrl = i.ImageUrl,
-            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId)
+            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId),
+            AvatarUrl = i.User?.AvatarUrl
         }).ToList();
         var feedViewModel = new FeedViewModel {
             Posts = postModels,

@@ -10,6 +10,7 @@ public class PostViewModel
     public int Comments { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsLiked { get; set; }
+    public string? AvatarUrl { get; set; }
 }
 
 public class FeedViewModel

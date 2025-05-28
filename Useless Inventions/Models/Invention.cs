@@ -18,7 +18,6 @@ public class Invention
     public string Description { get; set; } = string.Empty;
 
     [Display(Name = "Image URL")]
-    [Url(ErrorMessage = "Please enter a valid URL")]
     public string? ImageUrl { get; set; }
 
     [Required]
@@ -28,7 +27,7 @@ public class Invention
 
     // Navigation properties
     public string UserId { get; set; } = string.Empty;
-    public IdentityUser User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
     
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<Like> Likes { get; set; } = new List<Like>();

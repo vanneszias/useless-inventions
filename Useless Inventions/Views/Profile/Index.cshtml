@@ -1,0 +1,49 @@
+@model Useless_Inventions.Models.UserProfileCardViewModel
+@{
+    ViewData["Title"] = $"@Model.UserName's Profile";
+    var inventions = ViewBag.Inventions as List<Useless_Inventions.Models.Invention>;
+    ViewBag.ProfilePage = true;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @await Html.PartialAsync("~/Views/Shared/Components/User/_UserProfileCard.cshtml", Model)
+            <hr />
+            <h3 class="mb-3">Inventions</h3>
+            @if (inventions != null && inventions.Count > 0)
+            {
+                <div class="list-group">
+                    @foreach (var invention in inventions)
+                    {
+                        <a href="/Inventions/Details/@invention.Id" class="text-decoration-none text-dark">
+                            <div class="list-group-item mb-3 p-3 rounded shadow-sm">
+                                <div class="d-flex align-items-center mb-2">
+                                    @if (!string.IsNullOrEmpty(invention.ImageUrl))
+                                    {
+                                        <img src="@invention.ImageUrl" alt="Invention image" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    }
+                                    <div>
+                                        <h5 class="mb-1">@invention.Title</h5>
+                                        <small class="text-muted">@invention.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                </div>
+                                <p class="mb-1">@invention.Description</p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">No inventions yet.</div>
+            }
+            @if (Model.IsCurrentUser)
+            {
+                <div class="mb-3 text-end">
+                    <a href="/Profile/Edit" class="btn btn-primary">Edit Profile</a>
+                </div>
+            }
+        </div>
+    </div>
+</div> 
