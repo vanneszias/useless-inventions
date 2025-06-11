@@ -49,7 +49,7 @@ public class ProfileController : Controller
         var model = new UserProfileCardViewModel
         {
             UserName = user.UserName ?? "User",
-            Email = user.Email ?? string.Empty,
+            Email = string.Empty, // Not displayed for privacy
             AvatarUrl = string.IsNullOrEmpty(user.AvatarUrl) ? "/images/avatar-placeholder.png" : user.AvatarUrl,
             InventionCount = inventions.Count,
             IsCurrentUser = isCurrentUser,

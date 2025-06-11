@@ -1,0 +1,671 @@
+@model Useless_Inventions.Controllers.CreateInventionViewModel
+
+@{
+    ViewData["Title"] = "Create New Invention";
+    var isDraft = Model.IsDraft;
+}
+
+<div class="create-container">
+    <!-- Page Header -->
+    <div class="create-header">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h2 mb-1">
+                    @if (isDraft)
+                    {
+                        <i class="bi bi-pencil-square me-2"></i>
+                        <span>Edit Draft</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-plus-circle me-2"></i>
+                        <span>Create New Invention</span>
+                    }
+                </h1>
+                <p class="text-muted mb-0">Share your brilliant, useless invention with the world</p>
+            </div>
+            <div class="header-actions">
+                @if (isDraft)
+                {
+                    <a href="/Create" class="btn btn-outline-secondary">
+                        <i class="bi bi-plus me-2"></i>
+                        New Invention
+                    </a>
+                }
+                <a href="/Create/Drafts" class="btn btn-outline-primary">
+                    <i class="bi bi-folder me-2"></i>
+                    My Drafts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Create Form -->
+    <div class="create-form-container">
+        <form asp-action="Index" method="post" enctype="multipart/form-data" id="createForm">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="IsDraft" />
+            <input type="hidden" asp-for="ExistingImageUrl" />
+            
+            <div class="row g-4">
+                <!-- Main Form Column -->
+                <div class="col-12 col-lg-8">
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h4 class="mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Invention Details
+                            </h4>
+                        </div>
+                        
+                        <div class="form-card-body">
+                            <!-- Title -->
+                            <div class="form-group mb-4">
+                                <label asp-for="Title" class="form-label">
+                                    <i class="bi bi-type me-2"></i>
+                                    Title
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Title" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="What's your useless invention called?"
+                                       maxlength="100"
+                                       id="titleInput">
+                                <div class="form-text">
+                                    <span id="titleCount">0</span>/100 characters
+                                </div>
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="form-group mb-4">
+                                <label asp-for="Description" class="form-label">
+                                    <i class="bi bi-text-paragraph me-2"></i>
+                                    Description
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <textarea asp-for="Description" 
+                                          class="form-control" 
+                                          rows="8"
+                                          placeholder="Describe your invention in detail. What does it do? How does it work? Why is it brilliantly useless?"
+                                          id="descriptionInput"></textarea>
+                                <div class="form-text">
+                                    <span id="descriptionCount">0</span> characters (minimum 10)
+                                </div>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="form-group mb-4">
+                                <label asp-for="ImageFile" class="form-label">
+                                    <i class="bi bi-image me-2"></i>
+                                    Image
+                                    <span class="text-muted">(optional)</span>
+                                </label>
+                                
+                                <div class="image-upload-area" id="imageUploadArea">
+                                    @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+                                    {
+                                        <div class="existing-image">
+                                            <img src="@Model.ExistingImageUrl" alt="Current image" class="preview-image" id="imagePreview">
+                                            <div class="image-overlay">
+                                                <button type="button" class="btn btn-outline-light btn-sm" onclick="changeImage()">
+                                                    <i class="bi bi-camera me-1"></i>
+                                                    Change Image
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeImage()">
+                                                    <i class="bi bi-trash me-1"></i>
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="upload-placeholder" id="uploadPlaceholder">
+                                            <i class="bi bi-cloud-upload display-4 text-muted mb-3"></i>
+                                            <h5>Add an image to your invention</h5>
+                                            <p class="text-muted mb-3">Drag and drop an image here, or click to browse</p>
+                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('imageInput').click()">
+                                                <i class="bi bi-camera me-2"></i>
+                                                Choose Image
+                                            </button>
+                                        </div>
+                                        <img id="imagePreview" class="preview-image" style="display: none;">
+                                    }
+                                    
+                                    <input type="file" 
+                                           asp-for="ImageFile" 
+                                           class="d-none" 
+                                           id="imageInput"
+                                           accept="image/*">
+                                </div>
+                                
+                                <div class="form-text">
+                                    Supported formats: JPG, PNG, GIF, WebP (max 5MB)
+                                </div>
+                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Column -->
+                <div class="col-12 col-lg-4">
+                    <!-- Publishing Options -->
+                    <div class="sidebar-card mb-4">
+                        <div class="sidebar-card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-gear me-2"></i>
+                                Publishing
+                            </h5>
+                        </div>
+                        <div class="sidebar-card-body">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-upload me-2"></i>
+                                    @if (isDraft)
+                                    {
+                                        <span>Update Invention</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Publish Invention</span>
+                                    }
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">
+                                    <i class="bi bi-save me-2"></i>
+                                    Save as Draft
+                                </button>
+                                
+                                @if (isDraft)
+                                {
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteDraft()">
+                                        <i class="bi bi-trash me-2"></i>
+                                        Delete Draft
+                                    </button>
+                                }
+                            </div>
+                            
+                            <div class="auto-save-status mt-3">
+                                <small class="text-muted" id="autoSaveStatus">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Auto-save: Ready
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tips Card -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Tips for Great Inventions
+                            </h5>
+                        </div>
+                        <div class="sidebar-card-body">
+                            <ul class="tips-list">
+                                <li>
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    <strong>Be creative:</strong> The more useless, the better!
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    <strong>Add humor:</strong> Make people laugh with your description
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    <strong>Include an image:</strong> Visual inventions get more attention
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    <strong>Explain the "why":</strong> What problem does it "solve"?
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    <strong>Have fun:</strong> This is all about creativity and entertainment
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .create-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .create-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .form-card,
+    .sidebar-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .form-card-header,
+    .sidebar-card-header {
+        background: var(--background);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .form-card-header h4,
+    .sidebar-card-header h5 {
+        color: var(--text);
+        margin: 0;
+    }
+
+    .form-card-body,
+    .sidebar-card-body {
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-control {
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--surface);
+        color: var(--text);
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.2rem rgba(79, 140, 255, 0.1);
+    }
+
+    .form-control-lg {
+        padding: 1rem 1.25rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .form-text {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Image Upload Area */
+    .image-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .image-upload-area:hover {
+        border-color: var(--accent);
+        background: rgba(79, 140, 255, 0.02);
+    }
+
+    .upload-placeholder {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .upload-placeholder h5 {
+        color: var(--text);
+        margin-bottom: 0.75rem;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .existing-image {
+        position: relative;
+        display: inline-block;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .existing-image:hover .image-overlay {
+        opacity: 1;
+    }
+
+    /* Sidebar */
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        display: flex;
+        align-items: flex-start;
+        line-height: 1.4;
+    }
+
+    .tips-list li:last-child {
+        border-bottom: none;
+    }
+
+    .auto-save-status {
+        text-align: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    /* Character counters */
+    #titleCount,
+    #descriptionCount {
+        font-weight: 600;
+        color: var(--accent);
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 992px) {
+        .create-container {
+            padding: 1rem;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-card-body,
+        .sidebar-card-body {
+            padding: 1rem;
+        }
+
+        .upload-placeholder {
+            padding: 1.5rem 1rem;
+        }
+
+        .tips-list li {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .create-header .d-flex {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-control-lg {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+
+        .image-overlay {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    /* Auto-save indicator */
+    .auto-save-saving {
+        color: var(--warning, #ffc107) !important;
+    }
+
+    .auto-save-saved {
+        color: var(--success, #28a745) !important;
+    }
+
+    .auto-save-error {
+        color: var(--danger, #dc3545) !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('titleInput');
+        const descriptionInput = document.getElementById('descriptionInput');
+        const titleCount = document.getElementById('titleCount');
+        const descriptionCount = document.getElementById('descriptionCount');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const autoSaveStatus = document.getElementById('autoSaveStatus');
+        
+        let autoSaveTimer;
+
+        // Character counters
+        function updateCharacterCounts() {
+            if (titleInput && titleCount) {
+                titleCount.textContent = titleInput.value.length;
+            }
+            if (descriptionInput && descriptionCount) {
+                descriptionCount.textContent = descriptionInput.value.length;
+            }
+        }
+
+        // Initialize character counts
+        updateCharacterCounts();
+
+        // Update character counts on input
+        titleInput?.addEventListener('input', updateCharacterCounts);
+        descriptionInput?.addEventListener('input', updateCharacterCounts);
+
+        // Auto-save functionality
+        function scheduleAutoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(performAutoSave, 2000); // Save after 2 seconds of inactivity
+        }
+
+        function performAutoSave() {
+            const titleValue = titleInput?.value?.trim() || '';
+            const descriptionValue = descriptionInput?.value?.trim() || '';
+            
+            if (!titleValue && !descriptionValue) return;
+
+            updateAutoSaveStatus('saving');
+
+            // This would typically make an AJAX call to save draft
+            // For now, just simulate the save process
+            setTimeout(() => {
+                updateAutoSaveStatus('saved');
+                // In real implementation, you'd call the SaveDraft endpoint here
+            }, 1000);
+        }
+
+        function updateAutoSaveStatus(status) {
+            if (!autoSaveStatus) return;
+
+            autoSaveStatus.className = 'text-muted';
+            
+            switch (status) {
+                case 'saving':
+                    autoSaveStatus.className = 'auto-save-saving';
+                    autoSaveStatus.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Auto-saving...';
+                    break;
+                case 'saved':
+                    autoSaveStatus.className = 'auto-save-saved';
+                    autoSaveStatus.innerHTML = '<i class="bi bi-check-circle me-1"></i>Draft saved';
+                    setTimeout(() => {
+                        autoSaveStatus.className = 'text-muted';
+                        autoSaveStatus.innerHTML = '<i class="bi bi-clock me-1"></i>Auto-save: Ready';
+                    }, 3000);
+                    break;
+                case 'error':
+                    autoSaveStatus.className = 'auto-save-error';
+                    autoSaveStatus.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Save failed';
+                    break;
+            }
+        }
+
+        // Schedule auto-save on input
+        titleInput?.addEventListener('input', scheduleAutoSave);
+        descriptionInput?.addEventListener('input', scheduleAutoSave);
+
+        // Image upload handling
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleImageUpload(file);
+                }
+            });
+        }
+
+        // Drag and drop for image upload
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        if (imageUploadArea) {
+            imageUploadArea.addEventListener('click', function() {
+                if (uploadPlaceholder && uploadPlaceholder.style.display !== 'none') {
+                    imageInput?.click();
+                }
+            });
+
+            imageUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--accent)';
+            });
+
+            imageUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--border)';
+            });
+
+            imageUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--border)';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    imageInput.files = files;
+                    handleImageUpload(files[0]);
+                }
+            });
+        }
+
+        function handleImageUpload(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (imagePreview) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                if (uploadPlaceholder) {
+                    uploadPlaceholder.style.display = 'none';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Form validation
+        const form = document.getElementById('createForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const title = titleInput?.value?.trim() || '';
+                const description = descriptionInput?.value?.trim() || '';
+
+                if (title.length < 3) {
+                    e.preventDefault();
+                    alert('Title must be at least 3 characters long.');
+                    titleInput?.focus();
+                    return false;
+                }
+
+                if (description.length < 10) {
+                    e.preventDefault();
+                    alert('Description must be at least 10 characters long.');
+                    descriptionInput?.focus();
+                    return false;
+                }
+            });
+        }
+    });
+
+    // Global functions for buttons
+    function changeImage() {
+        document.getElementById('imageInput')?.click();
+    }
+
+    function removeImage() {
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        
+        if (imageInput) imageInput.value = '';
+        if (imagePreview) imagePreview.style.display = 'none';
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'block';
+    }
+
+    function saveDraft() {
+        const form = document.getElementById('createForm');
+        if (form) {
+            // This would typically make an AJAX call to save as draft
+            alert('Draft save functionality would be implemented here');
+        }
+    }
+
+    function deleteDraft() {
+        if (confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+            // This would typically make an AJAX call to delete the draft
+            alert('Draft delete functionality would be implemented here');
+        }
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

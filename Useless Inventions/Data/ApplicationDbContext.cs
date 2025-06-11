@@ -15,6 +15,7 @@ namespace Useless_Inventions.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Follow> Follows { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -57,9 +58,9 @@ namespace Useless_Inventions.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Make sure that a user can only like an invention once
-            builder.Entity<Like>()  
-                .HasIndex(l => new { l.UserId, l.InventionId })  
-                .IsUnique();  
+            builder.Entity<Like>()
+                .HasIndex(l => new { l.UserId, l.InventionId })
+                .IsUnique();
 
             builder.Entity<Follow>()
                 .HasOne(f => f.Follower)
@@ -75,6 +76,25 @@ namespace Useless_Inventions.Data
 
             builder.Entity<Follow>()
                 .HasIndex(f => new { f.FollowerId, f.FolloweeId }).IsUnique();
+
+            // Configure Notification relationships
+            builder.Entity<Notification>()
+                .HasOne(n => n.ToUser)
+                .WithMany()
+                .HasForeignKey(n => n.ToUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Notification>()
+                .HasOne(n => n.FromUser)
+                .WithMany()
+                .HasForeignKey(n => n.FromUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Notification>()
+                .HasOne(n => n.Invention)
+                .WithMany()
+                .HasForeignKey(n => n.InventionId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

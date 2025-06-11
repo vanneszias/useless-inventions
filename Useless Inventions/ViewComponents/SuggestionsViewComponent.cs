@@ -10,6 +10,7 @@ public class SuggestionsViewComponent : ViewComponent
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    
     public SuggestionsViewComponent(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
@@ -23,6 +24,7 @@ public class SuggestionsViewComponent : ViewComponent
             .Where(f => f.FollowerId == currentUserId)
             .Select(f => f.FolloweeId)
             .ToListAsync();
+
         var users = await _context.Inventions
             .Where(i => i.UserId != currentUserId)
             .GroupBy(i => i.User)
@@ -34,6 +36,7 @@ public class SuggestionsViewComponent : ViewComponent
             .OrderByDescending(g => g.InventionCount)
             .Take(5)
             .ToListAsync();
+
         return View("_SuggestionsList", users);
     }
-} 
+}

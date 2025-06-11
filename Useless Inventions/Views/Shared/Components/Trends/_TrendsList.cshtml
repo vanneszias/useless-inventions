@@ -1,13 +1,223 @@
 @model IEnumerable<dynamic>
-<div class="card mt-4">
-    <div class="card-header bg-white fw-bold">Trends for you</div>
-    <ul class="list-group list-group-flush">
-        @foreach (var trend in Model)
+
+<div class="trends-card">
+    <div class="trends-header">
+        <h3 class="trends-title">
+            <i class="bi bi-fire me-2"></i>
+            Trending
+        </h3>
+    </div>
+    
+    <div class="trends-content">
+        @if (Model != null && Model.Any())
         {
-            <li class="list-group-item">
-                <span class="text-muted small">Trending</span><br />
-                <span class="fw-semibold">@trend.Tag</span> <span class="text-muted small">(@trend.Count)</span>
-            </li>
+            @foreach (var trend in Model.Take(8))
+            {
+                <a href="/Search?q=@Uri.EscapeDataString(trend.Tag)" class="trend-item">
+                    <div class="trend-main">
+                        <div class="trend-category">Trending in Inventions</div>
+                        <div class="trend-hashtag">@trend.Tag</div>
+                        <div class="trend-count">@trend.Count invention@(trend.Count != 1 ? "s" : "")</div>
+                    </div>
+                    <div class="trend-icon">
+                        <i class="bi bi-arrow-up-right"></i>
+                    </div>
+                </a>
+            }
         }
-    </ul>
-</div> 
+        else
+        {
+            <div class="no-trends">
+                <i class="bi bi-graph-up me-2"></i>
+                <span>No trending topics yet</span>
+            </div>
+        }
+    </div>
+    
+    <div class="trends-footer">
+        <a href="/Explore/Trends" class="show-more-link">
+            Show more trends
+            <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>
+
+<style>
+.trends-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.trends-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.trends-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.trends-title i {
+    color: #ff6b35;
+}
+
+.trends-content {
+    padding: 0;
+}
+
+.trend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.trend-item:last-child {
+    border-bottom: none;
+}
+
+.trend-item:hover {
+    background: rgba(79, 140, 255, 0.05);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.trend-item:hover .trend-hashtag {
+    color: var(--accent);
+}
+
+.trend-item:hover .trend-icon {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.trend-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.trend-category {
+    font-size: 0.8rem;
+    color: var(--text);
+    opacity: 0.6;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.trend-hashtag {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+
+.trend-count {
+    font-size: 0.85rem;
+    color: var(--text);
+    opacity: 0.7;
+}
+
+.trend-icon {
+    opacity: 0;
+    transform: translateX(5px);
+    transition: all 0.2s ease;
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+.no-trends {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: var(--text);
+    opacity: 0.6;
+    font-size: 0.9rem;
+}
+
+.trends-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: rgba(79, 140, 255, 0.02);
+}
+
+.show-more-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.show-more-link:hover {
+    color: var(--accent);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.show-more-link i {
+    transition: transform 0.2s ease;
+}
+
+.show-more-link:hover i {
+    transform: translateX(2px);
+}
+
+/* Mobile adjustments */
+@@media (max-width: 767.98px) {
+    .trends-card {
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    .trends-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    
+    .trends-title {
+        font-size: 1rem;
+    }
+    
+    .trend-item {
+        padding: 0.75rem 1rem;
+    }
+    
+    .trend-hashtag {
+        font-size: 0.9rem;
+    }
+    
+    .trends-footer {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Animation for loading state */
+@@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.trends-loading .trend-item {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+</style>

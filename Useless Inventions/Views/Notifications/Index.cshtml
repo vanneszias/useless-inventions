@@ -1,0 +1,614 @@
+@model IEnumerable<Useless_Inventions.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+    var filter = ViewBag.Filter as string ?? "all";
+}
+
+<div class="notifications-container">
+    <!-- Page Header -->
+    <div class="notifications-header">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h2 mb-1">
+                    <i class="bi bi-bell me-2"></i>
+                    Notifications
+                </h1>
+                <p class="text-muted mb-0">Stay updated with your invention community</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline-secondary" onclick="markAllAsRead()">
+                    <i class="bi bi-check-all me-2"></i>
+                    Mark All Read
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-funnel me-2"></i>
+                        Filter
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item @(filter == "all" ? "active" : "")" href="/Notifications?filter=all">All Notifications</a></li>
+                        <li><a class="dropdown-item @(filter == "unread" ? "active" : "")" href="/Notifications?filter=unread">Unread Only</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item @(filter == "likes" ? "active" : "")" href="/Notifications?filter=likes">Likes</a></li>
+                        <li><a class="dropdown-item @(filter == "comments" ? "active" : "")" href="/Notifications?filter=comments">Comments</a></li>
+                        <li><a class="dropdown-item @(filter == "follows" ? "active" : "")" href="/Notifications?filter=follows">Follows</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Notifications List -->
+    <div class="notifications-list">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var notification in Model)
+            {
+                <div class="notification-item @(!notification.IsRead ? "unread" : "")" data-id="@notification.Id">
+                    <div class="notification-content">
+                        <div class="notification-icon">
+                            @switch (notification.Type)
+                            {
+                                case Useless_Inventions.Models.NotificationType.Like:
+                                    <i class="bi bi-heart-fill text-danger"></i>
+                                    break;
+                                case Useless_Inventions.Models.NotificationType.Comment:
+                                    <i class="bi bi-chat-fill text-primary"></i>
+                                    break;
+                                case Useless_Inventions.Models.NotificationType.Follow:
+                                    <i class="bi bi-person-plus-fill text-success"></i>
+                                    break;
+                                case Useless_Inventions.Models.NotificationType.Mention:
+                                    <i class="bi bi-at text-warning"></i>
+                                    break;
+                                case Useless_Inventions.Models.NotificationType.NewInvention:
+                                    <i class="bi bi-lightbulb-fill text-info"></i>
+                                    break;
+                                default:
+                                    <i class="bi bi-bell-fill text-secondary"></i>
+                                    break;
+                            }
+                        </div>
+                        
+                        <div class="notification-body">
+                            <div class="notification-main">
+                                <div class="notification-user">
+                                    @if (notification.FromUser != null)
+                                    {
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(notification.FromUser.AvatarUrl))
+                                            {
+                                                <img src="@notification.FromUser.AvatarUrl" alt="@notification.FromUser.UserName" class="user-avatar me-2">
+                                            }
+                                            else
+                                            {
+                                                <div class="user-avatar-placeholder me-2">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                            }
+                                            <a href="/Profile/@notification.FromUser.UserName" class="user-link">
+                                                @notification.FromUser.UserName
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="notification-message">
+                                    @notification.Message
+                                    
+                                    @if (notification.Invention != null)
+                                    {
+                                        <div class="invention-reference">
+                                            <a href="/Inventions/Details/@notification.Invention.Id" class="invention-link">
+                                                <i class="bi bi-lightbulb me-1"></i>
+                                                "@notification.Invention.Title"
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="notification-time">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        @GetTimeAgo(notification.CreatedAt)
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            @if (!notification.IsRead)
+                            {
+                                <div class="unread-indicator">
+                                    <div class="unread-dot"></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="notification-actions">
+                        <div class="dropdown">
+                            <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if (!notification.IsRead)
+                                {
+                                    <li>
+                                        <button class="dropdown-item" onclick="markAsRead(@notification.Id)">
+                                            <i class="bi bi-check me-2"></i>
+                                            Mark as Read
+                                        </button>
+                                    </li>
+                                }
+                                <li>
+                                    <button class="dropdown-item text-danger" onclick="deleteNotification(@notification.Id)">
+                                        <i class="bi bi-trash me-2"></i>
+                                        Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-notifications">
+                <div class="empty-content">
+                    <div class="empty-icon">
+                        <i class="bi bi-bell-slash display-1 text-muted"></i>
+                    </div>
+                    <h4>No notifications yet</h4>
+                    <p class="text-muted">
+                        @if (filter == "unread")
+                        {
+                            <span>You don't have any unread notifications.</span>
+                        }
+                        else
+                        {
+                            <span>When people interact with your inventions, you'll see notifications here.</span>
+                        }
+                    </p>
+                    <div class="empty-actions">
+                        @if (filter != "all")
+                        {
+                            <a href="/Notifications" class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left me-2"></i>
+                                View All Notifications
+                            </a>
+                        }
+                        <a href="/Create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Create New Invention
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .notifications-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .notifications-list {
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-item:hover {
+        background: var(--background);
+    }
+
+    .notification-item.unread {
+        background: rgba(79, 140, 255, 0.02);
+        border-left: 4px solid var(--accent);
+    }
+
+    .notification-content {
+        flex: 1;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+    }
+
+    .notification-body {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .notification-main {
+        flex: 1;
+    }
+
+    .notification-user {
+        margin-bottom: 0.5rem;
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-avatar-placeholder {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    .user-link {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .user-link:hover {
+        color: var(--accent);
+    }
+
+    .notification-message {
+        color: var(--text);
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .invention-reference {
+        margin-top: 0.5rem;
+    }
+
+    .invention-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .invention-link:hover {
+        text-decoration: underline;
+    }
+
+    .notification-time {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .unread-indicator {
+        margin-left: 1rem;
+    }
+
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--accent);
+        border-radius: 50%;
+    }
+
+    .notification-actions {
+        margin-left: 1rem;
+    }
+
+    .notification-actions .btn-link {
+        color: var(--text-muted);
+        border: none;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .notification-actions .btn-link:hover {
+        color: var(--accent);
+    }
+
+    /* Empty state */
+    .empty-notifications {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-content {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .empty-icon {
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+
+    .empty-content h4 {
+        color: var(--text);
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-content p {
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .empty-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .notifications-container {
+            padding: 1rem;
+        }
+
+        .notifications-header .d-flex {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .header-actions .btn {
+            width: 100%;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .notification-content {
+            width: 100%;
+        }
+
+        .notification-body {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .unread-indicator {
+            margin-left: 0;
+            align-self: flex-end;
+        }
+
+        .notification-actions {
+            margin-left: 0;
+            align-self: flex-end;
+        }
+
+        .empty-notifications {
+            padding: 2rem 1rem;
+        }
+
+        .empty-actions {
+            flex-direction: column;
+        }
+
+        .empty-actions .btn {
+            width: 100%;
+        }
+    }
+
+    /* Filter dropdown active state */
+    .dropdown-item.active {
+        background-color: var(--accent);
+        color: white;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh notification count every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+    });
+
+    async function markAsRead(notificationId) {
+        try {
+            const response = await fetch('/Notifications/MarkAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: notificationId })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                if (notificationElement) {
+                    notificationElement.classList.remove('unread');
+                    const unreadIndicator = notificationElement.querySelector('.unread-indicator');
+                    if (unreadIndicator) {
+                        unreadIndicator.remove();
+                    }
+                }
+                updateNotificationCount();
+            } else {
+                alert(result.message || 'Failed to mark notification as read');
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    async function markAllAsRead() {
+        if (!confirm('Mark all notifications as read?')) return;
+
+        try {
+            const response = await fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Remove unread styling from all notifications
+                document.querySelectorAll('.notification-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                    const unreadIndicator = item.querySelector('.unread-indicator');
+                    if (unreadIndicator) {
+                        unreadIndicator.remove();
+                    }
+                });
+                updateNotificationCount();
+            } else {
+                alert(result.message || 'Failed to mark all notifications as read');
+            }
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    async function deleteNotification(notificationId) {
+        if (!confirm('Delete this notification?')) return;
+
+        try {
+            const response = await fetch('/Notifications/Delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: notificationId })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+                if (notificationElement) {
+                    notificationElement.style.transition = 'all 0.3s ease';
+                    notificationElement.style.opacity = '0';
+                    notificationElement.style.transform = 'translateX(-100%)';
+                    
+                    setTimeout(() => {
+                        notificationElement.remove();
+                        
+                        // Check if list is empty and show empty state if needed
+                        const remainingNotifications = document.querySelectorAll('.notification-item');
+                        if (remainingNotifications.length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                }
+                updateNotificationCount();
+            } else {
+                alert(result.message || 'Failed to delete notification');
+            }
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    async function updateNotificationCount() {
+        try {
+            const response = await fetch('/Notifications/GetUnreadCount');
+            const result = await response.json();
+            
+            // Update notification badge in navigation if it exists
+            const notificationBadge = document.querySelector('.notification-badge');
+            if (notificationBadge) {
+                if (result.count > 0) {
+                    notificationBadge.textContent = result.count > 99 ? '99+' : result.count;
+                    notificationBadge.style.display = 'inline';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating notification count:', error);
+        }
+    }
+</script>
+
+@functions {
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+
+        if (timeSpan.TotalDays > 7)
+            return dateTime.ToString("MMM dd, yyyy");
+        else if (timeSpan.TotalDays >= 1)
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+        else if (timeSpan.TotalHours >= 1)
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+        else if (timeSpan.TotalMinutes >= 1)
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+        else
+            return "Just now";
+    }
+}

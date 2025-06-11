@@ -6,7 +6,9 @@
         <div class="fw-semibold profile-name-mini text-truncate">
             <a href="/profile/@Model.UserName" class="text-dark text-decoration-none">@Model.UserName</a>
         </div>
-        <div class="text-muted small profile-email-mini text-truncate">@Model.Email</div>
+        <div class="text-muted small profile-email-mini text-truncate">
+            <i class="bi bi-lightbulb me-1"></i>Active inventor
+        </div>
         @if (Model.InventionCount.HasValue)
         {
             <div class="text-muted small mt-1">@Model.InventionCount inventions</div>

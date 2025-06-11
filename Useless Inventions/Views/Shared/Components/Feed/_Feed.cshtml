@@ -1,70 +1,610 @@
 @using Useless_Inventions.Models
 @model FeedViewModel
 
-<main class="feed-main">
-    <div class="p-1 p-md-3" style="max-width: 600px; margin: 0 auto;">
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            var userManagerObj = Context.RequestServices.GetService(typeof(UserManager<Useless_Inventions.Models.ApplicationUser>));
-            var userManager = userManagerObj as UserManager<Useless_Inventions.Models.ApplicationUser>;
-            var currentUser = userManager != null ? await userManager.GetUserAsync(User) : null;
-            var avatarUrl = currentUser?.AvatarUrl;
-            <div class="glass-card p-3 mb-4 border-0 shadow-sm rounded-4">
-                <div class="card-body d-flex flex-column flex-md-row gap-3 align-items-start">
-                    <img src="@avatarUrl" class="rounded-circle" width="40" height="40" alt="User" />
+<div class="modern-feed">
+    <!-- Create New Post Section -->
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        var userManagerObj = Context.RequestServices.GetService(typeof(UserManager<Useless_Inventions.Models.ApplicationUser>));
+        var userManager = userManagerObj as UserManager<Useless_Inventions.Models.ApplicationUser>;
+        var currentUser = userManager != null ? await userManager.GetUserAsync(User) : null;
+        var avatarUrl = currentUser?.AvatarUrl ?? "/images/default-avatar.svg";
         
-                    <form asp-action="Create" asp-controller="Inventions" method="post" enctype="multipart/form-data" class="w-100">
-                        <div class="mb-2">
-                            <input asp-for="NewInvention.Title" class="form-control form-control-sm mb-2" placeholder="What's it called?" maxlength="100" required />
-                            <span asp-validation-for="NewInvention.Title" class="text-danger small"></span>
-        
-                            <textarea asp-for="NewInvention.Description" class="form-control form-control-sm mb-2" rows="2" placeholder="Describe your useless invention..." maxlength="500" required></textarea>
-                            <span asp-validation-for="NewInvention.Description" class="text-danger small"></span>
-        
-                            @await Html.PartialAsync("~/Views/Shared/Components/UploadPicture/UploadPicture.cshtml")
-                            <input type="hidden" id="ImageUrl" name="NewInvention.ImageUrl" value="@Model.NewInvention.ImageUrl" />
-                            <span asp-validation-for="NewInvention.ImageUrl" class="text-danger small"></span>
-                        </div>
-        
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn glass-btn-mini btn-sm rounded-pill px-3">
-                                <i class="bi bi-send me-1"></i> Share
-                            </button>
-                        </div>
-                    </form>
+        <div class="create-post-card">
+            <div class="create-post-header">
+                <img src="@avatarUrl" alt="@currentUser?.UserName" class="user-avatar" />
+                <div class="create-prompt">
+                    <span>What useless invention are you working on?</span>
                 </div>
             </div>
-        }
-
-        @if (Model.Posts != null)
-        {
-            foreach (var postModel in Model.Posts)
-            {
-                <div class="mb-3">
-                    @await Html.PartialAsync("Components/Post/_PostCard", postModel)
+            
+            <form asp-action="Create" asp-controller="Inventions" method="post" enctype="multipart/form-data" class="create-post-form" id="createInventionForm">
+                <div class="form-content">
+                    <div class="input-group">
+                        <input asp-for="NewInvention.Title" 
+                               class="form-input title-input" 
+                               placeholder="Give your invention a catchy name..." 
+                               maxlength="100" 
+                               required />
+                        <span asp-validation-for="NewInvention.Title" class="validation-error"></span>
+                    </div>
+                    
+                    <div class="input-group">
+                        <textarea asp-for="NewInvention.Description" 
+                                  class="form-input description-input" 
+                                  rows="3" 
+                                  placeholder="Describe your wonderfully useless creation..." 
+                                  maxlength="500" 
+                                  required></textarea>
+                        <span asp-validation-for="NewInvention.Description" class="validation-error"></span>
+                        <div class="character-count">
+                            <span id="charCount">0</span>/500
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        @await Html.PartialAsync("~/Views/Shared/Components/UploadPicture/UploadPicture.cshtml")
+                        <input type="hidden" id="ImageUrl" name="NewInvention.ImageUrl" value="@Model.NewInvention.ImageUrl" />
+                        <span asp-validation-for="NewInvention.ImageUrl" class="validation-error"></span>
+                    </div>
                 </div>
-            }
+                
+                <div class="form-actions">
+                    <div class="action-buttons">
+                        <button type="button" class="btn-icon" title="Add emoji">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                        <button type="button" class="btn-icon" title="Add hashtag">
+                            <i class="bi bi-hash"></i>
+                        </button>
+                        <button type="button" class="btn-icon" title="Add location">
+                            <i class="bi bi-geo-alt"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="bi bi-send"></i>
+                        <span>Share Invention</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <!-- Guest CTA -->
+        <div class="guest-cta">
+            <div class="cta-content">
+                <h3>Join the Useless Revolution!</h3>
+                <p>Share your wonderfully pointless inventions with the world</p>
+                <div class="cta-actions">
+                    <a href="/Identity/Account/Register" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-2"></i>Sign Up
+                    </a>
+                    <a href="/Identity/Account/Login" class="btn btn-outline-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </a>
+                </div>
+            </div>
+            <div class="cta-visual">
+                <i class="bi bi-lightbulb-off"></i>
+            </div>
+        </div>
+    }
+    
+    <!-- Feed Content -->
+    <div class="feed-content">
+        @if (Model.Posts != null && Model.Posts.Any())
+        {
+            <div class="posts-container">
+                @foreach (var postModel in Model.Posts)
+                {
+                    <div class="post-wrapper">
+                        @await Html.PartialAsync("Components/Post/_PostCard", postModel)
+                    </div>
+                }
+            </div>
+            
+            <!-- Load More Section -->
+            <div class="load-more-section">
+                <button class="btn-load-more" onclick="loadMorePosts()">
+                    <i class="bi bi-arrow-down-circle me-2"></i>
+                    Load More Inventions
+                </button>
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h3>No inventions yet!</h3>
+                <p>Be the first to share your useless creation</p>
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a href="/Identity/Account/Register" class="btn btn-primary">
+                        Get Started
+                    </a>
+                }
+            </div>
         }
     </div>
-</main>
+</div>
+
 @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<style>
+.modern-feed {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem 0;
+}
+
+/* Create Post Card */
+.create-post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+}
+
+.create-post-card:hover {
+    border-color: var(--border-light);
+    box-shadow: 0 4px 20px var(--shadow);
+}
+
+.create-post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+}
+
+.create-prompt {
+    flex: 1;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.create-post-form {
+    width: 100%;
+}
+
+.form-content {
+    margin-bottom: 1.5rem;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text);
+    transition: all 0.2s ease;
+    resize: none;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.form-input::placeholder {
+    color: var(--text-muted);
+}
+
+.title-input {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.description-input {
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+.character-count {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--background);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.validation-error {
+    color: var(--danger);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.btn-icon:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.btn-submit:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Guest CTA */
+.guest-cta {
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.guest-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 1;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.cta-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.cta-content p {
+    margin: 0 0 1.5rem 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.cta-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.cta-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.cta-actions .btn-primary {
+    background: white;
+    color: var(--accent);
+}
+
+.cta-actions .btn-outline-primary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.cta-visual {
+    position: relative;
+    z-index: 2;
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-left: 2rem;
+}
+
+/* Feed Content */
+.feed-content {
+    position: relative;
+}
+
+.posts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.post-wrapper {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Load More */
+.load-more-section {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2rem 0;
+}
+
+.btn-load-more {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 2rem;
+    padding: 1rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.btn-load-more:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-light);
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 0 0 1rem 0;
+    color: var(--text);
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    margin: 0 0 2rem 0;
+    font-size: 1.1rem;
+}
+
+/* Mobile Responsive */
+@@media (max-width: 767.98px) {
+    .modern-feed {
+        padding: 0.5rem;
+    }
+    
+    .create-post-card {
+        padding: 1rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .create-post-header {
+        margin-bottom: 1rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .create-prompt span {
+        font-size: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .action-buttons {
+        justify-content: center;
+    }
+    
+    .btn-submit {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .guest-cta {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .cta-visual {
+        margin-left: 0;
+        margin-top: 1rem;
+        font-size: 3rem;
+    }
+    
+    .cta-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .cta-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .posts-container {
+        gap: 1rem;
+    }
+    
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+}
+
+/* Loading states */
+.form-input.loading {
+    background: linear-gradient(90deg, var(--background) 25%, var(--surface) 50%, var(--background) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@@keyframes loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Focus management */
+.create-post-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Success animation */
+@@keyframes success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.form-success {
+    animation: success 0.3s ease-out;
+}
+</style>
+
 <script>
+// Character counter
+document.addEventListener('DOMContentLoaded', function() {
+    const descriptionInput = document.querySelector('.description-input');
+    const charCount = document.getElementById('charCount');
+    
+    if (descriptionInput && charCount) {
+        function updateCharCount() {
+            const count = descriptionInput.value.length;
+            charCount.textContent = count;
+            charCount.style.color = count > 450 ? 'var(--danger)' : 'var(--text-muted)';
+        }
+        
+        descriptionInput.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initialize
+    }
+});
+
+// Image upload handling
 let inventionImageUploading = false;
+
 document.addEventListener('change', async function(event) {
     const target = event.target;
     if (target.matches('.upload-picture-component input[type="file"]')) {
         if (target.files && target.files[0]) {
             const form = target.closest('form');
-            const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
-            if (submitBtn) submitBtn.disabled = true;
+            const submitBtn = form ? form.querySelector('#submitBtn') : null;
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i><span>Uploading...</span>';
+            }
+            
             inventionImageUploading = true;
             const formData = new FormData();
             formData.append('uploadedImage', target.files[0]);
+            
             try {
                 const response = await fetch('/Inventions/UploadInventionImage', {
                     method: 'POST',
                     body: formData
                 });
+                
                 if (response.ok) {
                     const data = await response.json();
                     if (form) {
@@ -72,35 +612,85 @@ document.addEventListener('change', async function(event) {
                         if (imageUrlInput) {
                             imageUrlInput.value = data.imageUrl;
                         }
-                        if (submitBtn) submitBtn.disabled = false;
                     }
-                    inventionImageUploading = false;
+                    
+                    // Success feedback
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="bi bi-check-circle"></i><span>Image uploaded!</span>';
+                        setTimeout(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="bi bi-send"></i><span>Share Invention</span>';
+                        }, 1000);
+                    }
                 } else {
-                    if (submitBtn) submitBtn.disabled = false;
-                    inventionImageUploading = false;
-                    alert('Image upload failed. Please try again.');
+                    throw new Error('Upload failed');
                 }
             } catch (err) {
-                if (submitBtn) submitBtn.disabled = false;
-                inventionImageUploading = false;
+                console.error('Upload error:', err);
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="bi bi-exclamation-circle"></i><span>Upload failed</span>';
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-send"></i><span>Share Invention</span>';
+                    }, 2000);
+                }
                 alert('Image upload failed. Please try again.');
+            } finally {
+                inventionImageUploading = false;
             }
         }
     }
 });
-// Prevent form submit if image is uploading
+
+// Form submission handling
 document.addEventListener('submit', function(event) {
     const form = event.target;
-    if (form.matches('form[asp-action="Create"]')) {
+    if (form.matches('#createInventionForm')) {
         if (inventionImageUploading) {
             event.preventDefault();
             alert('Please wait for the image to finish uploading before submitting.');
             return false;
         }
+        
+        // Success animation
+        form.classList.add('form-success');
+        setTimeout(() => form.classList.remove('form-success'), 300);
     }
 }, true);
-// On page load, ensure submit button is enabled (in case of navigation)
-document.querySelectorAll('form[asp-action="Create"] button[type="submit"]').forEach(function(btn) {
-    btn.disabled = false;
+
+// Load more posts function
+function loadMorePosts() {
+    const btn = document.querySelector('.btn-load-more');
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>Loading...';
+        btn.disabled = true;
+        
+        // Simulate loading - replace with actual AJAX call
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i>Load More Inventions';
+            btn.disabled = false;
+        }, 1000);
+    }
+}
+
+// Auto-resize textarea
+document.addEventListener('input', function(event) {
+    if (event.target.matches('.description-input')) {
+        event.target.style.height = 'auto';
+        event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
+    }
 });
-</script> 
+
+// Add spinning animation for loading icons
+const style = document.createElement('style');
+style.textContent = `
+.spin {
+    animation: spin 1s linear infinite;
+}
+@@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+`;
+document.head.appendChild(style);
+</script>
