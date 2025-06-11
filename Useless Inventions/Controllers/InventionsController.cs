@@ -6,6 +6,9 @@ using Useless_Inventions.Data;
 using Useless_Inventions.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.ComponentModel.DataAnnotations;
 
 namespace Useless_Inventions.Controllers;
 
@@ -78,48 +81,83 @@ public class InventionsController : Controller
     [Authorize]
     public async Task<IActionResult> Create(FeedViewModel feedViewModel)
     {
-        var invention = feedViewModel.NewInvention;
-        // Set required user properties before validation
-        invention.UserId = _userManager.GetUserId(User)!;
-        invention.CreatedAt = DateTime.UtcNow;
-        invention.User = await _userManager.GetUserAsync(User)!;
-
-        // Clear and revalidate ModelState after setting required properties
-        ModelState.Clear();
-        if (TryValidateModel(invention))
+        try
         {
+            var invention = feedViewModel.NewInvention;
+            if (invention == null)
+            {
+                TempData["ErrorMessages"] = new List<string> { "Invalid form data. Please try again." };
+                return RedirectToAction("Index", "Home");
+            }
+            
+            // Set required user properties before validation
+            invention.UserId = _userManager.GetUserId(User)!;
+            invention.CreatedAt = DateTime.UtcNow;
+            invention.User = await _userManager.GetUserAsync(User)!;
+
+            // Manual validation to ensure we catch the errors properly
+            var errors = new List<string>();
+            
+            if (string.IsNullOrWhiteSpace(invention.Title))
+            {
+                errors.Add("Title is required");
+            }
+            else if (invention.Title.Trim().Length < 3)
+            {
+                errors.Add("Title must be at least 3 characters long");
+            }
+            else if (invention.Title.Length > 100)
+            {
+                errors.Add("Title must be no more than 100 characters long");
+            }
+
+            if (string.IsNullOrWhiteSpace(invention.Description))
+            {
+                errors.Add("Description is required");
+            }
+            else if (invention.Description.Trim().Length < 10)
+            {
+                errors.Add("Description must be at least 10 characters long");
+            }
+
+            if (errors.Any())
+            {
+                TempData["ErrorMessages"] = errors;
+                TempData["FormData"] = new Dictionary<string, string>
+                {
+                    ["Title"] = invention.Title ?? "",
+                    ["Description"] = invention.Description ?? "",
+                    ["ImageUrl"] = invention.ImageUrl ?? ""
+                };
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Trim the input
+            invention.Title = invention.Title.Trim();
+            invention.Description = invention.Description.Trim();
+
             _context.Add(invention);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Your invention has been shared successfully!";
             return RedirectToAction("Index", "Home");
         }
-
-        ModelState.AddModelError(string.Empty, "Invalid data. Please check your input.");
-        foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        catch (Exception ex)
         {
-            Console.WriteLine(error.ErrorMessage);
+            // Log the error and provide user feedback
+            var errorMessage = "An error occurred while creating your invention. Please try again.";
+            TempData["ErrorMessages"] = new List<string> { errorMessage };
+            
+            // Preserve form data
+            var invention = feedViewModel?.NewInvention;
+            TempData["FormData"] = new Dictionary<string, string>
+            {
+                ["Title"] = invention?.Title ?? "",
+                ["Description"] = invention?.Description ?? "",
+                ["ImageUrl"] = invention?.ImageUrl ?? ""
+            };
+            
+            return RedirectToAction("Index", "Home");
         }
-        // Repopulate posts for the feed
-        var currentUserId = _userManager.GetUserId(User);
-        var inventions = await _context.Inventions
-            .Include(i => i.User)
-            .Include(i => i.Likes)
-            .Include(i => i.Comments)
-            .OrderByDescending(i => i.CreatedAt)
-            .Take(20)
-            .ToListAsync();
-        var postModels = inventions.Select(i => new PostViewModel {
-            Id = i.Id,
-            User = "@" + (i.User?.UserName ?? "Unknown"),
-            Content = i.Title + ": " + (i.Description.Length > 150 ? i.Description.Substring(0, 147) + "..." : i.Description),
-            Time = i.CreatedAt.ToString("MMM dd, yyyy"),
-            Likes = i.Likes?.Count ?? 0,
-            Comments = i.Comments?.Count ?? 0,
-            ImageUrl = i.ImageUrl,
-            IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId),
-            AvatarUrl = i.User?.AvatarUrl
-        }).ToList();
-        feedViewModel.Posts = postModels;
-        return View("Index", feedViewModel);
     }
 
     // POST: Inventions/Comment
@@ -136,22 +174,40 @@ public class InventionsController : Controller
             return RedirectToAction(nameof(Details), new { id = inventionId });
         }
 
-        Invention? invention = await _context.Inventions.FindAsync(inventionId);
+        Invention? invention = await _context.Inventions
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.Id == inventionId);
         if (invention == null)
         {
             return NotFound();
         }
 
+        string currentUserId = _userManager.GetUserId(User)!;
         Comment comment = new()
         {
             Content = content,
             InventionId = inventionId,
-            UserId = _userManager.GetUserId(User)!,
+            UserId = currentUserId,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
+
+        // Create notification for the invention owner (if not commenting on own invention)
+        if (invention.UserId != currentUserId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            await NotificationsController.CreateNotificationAsync(
+                _context,
+                invention.UserId,
+                currentUserId,
+                NotificationType.Comment,
+                $"commented on your invention",
+                inventionId
+            );
+        }
+
         return RedirectToAction(nameof(Details), new { id = inventionId });
     }
 
@@ -182,6 +238,7 @@ public class InventionsController : Controller
     {
         Invention? invention = await _context.Inventions
             .Include(i => i.Likes)
+            .Include(i => i.User)
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (invention == null)
@@ -204,6 +261,19 @@ public class InventionsController : Controller
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Create notification for the invention owner (if not liking own invention)
+            if (invention.UserId != userId)
+            {
+                await NotificationsController.CreateNotificationAsync(
+                    _context,
+                    invention.UserId,
+                    userId,
+                    NotificationType.Like,
+                    $"liked your invention",
+                    id
+                );
+            }
         }
 
         await _context.SaveChangesAsync();

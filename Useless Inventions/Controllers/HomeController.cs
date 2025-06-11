@@ -15,6 +15,12 @@ namespace Useless_Inventions.Controllers
 
         public IActionResult Index()
         {
+            // If user is not authenticated, redirect to Explore page
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                return RedirectToAction("Trends", "Explore");
+            }
+
             return View();
         }
 

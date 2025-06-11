@@ -78,6 +78,15 @@ public class ProfileController : Controller
         {
             _context.Follows.Add(new Follow { FollowerId = currentUserId, FolloweeId = userToFollow.Id });
             await _context.SaveChangesAsync();
+
+            // Create notification for the user being followed
+            await NotificationsController.CreateNotificationAsync(
+                _context,
+                userToFollow.Id,
+                currentUserId,
+                NotificationType.Follow,
+                $"started following you"
+            );
         }
         return RedirectToAction("Index", new { username });
     }

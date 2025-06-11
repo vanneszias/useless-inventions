@@ -42,12 +42,15 @@
                 <!-- Main Navigation -->
                 <div class="main-nav">
                     <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="/" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "home" ? "active" : "")">
-                                <i class="bi bi-house-door"></i>
-                                <span>Home</span>
-                            </a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a href="/" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "home" ? "active" : "")">
+                                    <i class="bi bi-house-door"></i>
+                                    <span>Home</span>
+                                </a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a href="/Explore/Trends" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "explore" ? "active" : "")">
                                 <i class="bi bi-compass"></i>
@@ -60,19 +63,22 @@
                                 <span>Search</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="/Notifications" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "notifications" ? "active" : "")">
-                                <i class="bi bi-bell"></i>
-                                <span>Notifications</span>
-                                <span class="notification-badge" style="display: none;"></span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/Create" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "create" ? "active" : "")">
-                                <i class="bi bi-plus-circle"></i>
-                                <span>Create</span>
-                            </a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a href="/Notifications" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "notifications" ? "active" : "")">
+                                    <i class="bi bi-bell"></i>
+                                    <span>Notifications</span>
+                                    <span class="notification-badge" style="display: none;"></span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/Create" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "create" ? "active" : "")">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <span>Create</span>
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
 
@@ -111,13 +117,13 @@
                 <!-- Footer Links -->
                 <div class="sidebar-footer d-none d-lg-block">
                     <div class="footer-links">
-                        <a href="/About">About</a>
-                        <a href="/Privacy">Privacy</a>
-                        <a href="/Terms">Terms</a>
-                        <a href="/Help">Help</a>
+                        <a href="#">About</a>
+                        <a href="#">Privacy</a>
+                        <a href="#">Terms</a>
+                        <a href="#">Help</a>
                     </div>
                     <div class="copyright">
-                        <small class="text-muted">&copy; 2024 Useless Inventions</small>
+                        <small class="text-muted">&copy; 2025 Useless Inventions</small>
                     </div>
                 </div>
             </div>
@@ -132,6 +138,39 @@
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
+        // Load notification count on page load - only for authenticated users
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                @:updateNotificationCount();
+                @:// Auto-refresh notification count every 60 seconds
+                @:setInterval(updateNotificationCount, 60000);
+            }
+        });
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            @:async function updateNotificationCount() {
+                @:try {
+                    @:const response = await fetch('/Notifications/GetUnreadCount');
+                    @:const result = await response.json();
+                    @:
+                    @:// Update notification badge in navigation
+                    @:const notificationBadge = document.querySelector('.notification-badge');
+                    @:if (notificationBadge) {
+                        @:if (result.count > 0) {
+                            @:notificationBadge.textContent = result.count > 99 ? '99+' : result.count;
+                            @:notificationBadge.style.display = 'inline';
+                        @:} else {
+                            @:notificationBadge.style.display = 'none';
+                        @:}
+                    @:}
+                @:} catch (error) {
+                    @:console.error('Error updating notification count:', error);
+                @:}
+            @:}
+        }
+
         function closeMobileSidebars() {
             const nav = document.getElementById('navigationSidebar');
             const trending = document.getElementById('trendingSidebar');

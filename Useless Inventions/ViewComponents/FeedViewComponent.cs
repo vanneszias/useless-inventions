@@ -43,10 +43,39 @@ public class FeedViewComponent : ViewComponent
             IsLiked = i.Likes != null && i.Likes.Any(l => l.UserId == currentUserId),
             AvatarUrl = i.User?.AvatarUrl
         }).ToList();
+
+        // Create new invention with form data if available (for error redisplay)
+        var newInvention = new Invention();
+        if (TempData.Peek("FormData") is Dictionary<string, string> formData)
+        {
+            newInvention.Title = formData.GetValueOrDefault("Title", "");
+            newInvention.Description = formData.GetValueOrDefault("Description", "");
+            newInvention.ImageUrl = formData.GetValueOrDefault("ImageUrl", "");
+        }
+
         var feedViewModel = new FeedViewModel {
             Posts = postModels,
-            NewInvention = new Invention()
+            NewInvention = newInvention
         };
+
+        // Pass error and success messages to the view
+        if (TempData.Peek("ErrorMessages") is List<string> errorMessages)
+        {
+            ViewBag.ErrorMessages = errorMessages;
+            TempData.Remove("ErrorMessages"); // Remove after reading
+        }
+        
+        if (TempData.Peek("SuccessMessage") is string successMessage)
+        {
+            ViewBag.SuccessMessage = successMessage;
+            TempData.Remove("SuccessMessage"); // Remove after reading
+        }
+        
+        if (TempData.Peek("FormData") != null)
+        {
+            TempData.Remove("FormData"); // Remove after reading
+        }
+
         return View("_Feed", feedViewModel);
     }
 } 

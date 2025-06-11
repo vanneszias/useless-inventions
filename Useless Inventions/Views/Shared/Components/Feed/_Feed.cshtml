@@ -2,6 +2,42 @@
 @model FeedViewModel
 
 <div class="modern-feed">
+    <!-- Success and Error Messages -->
+    @if (ViewBag.SuccessMessage != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @ViewBag.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (ViewBag.ErrorMessages != null)
+    {
+        var errorMessages = ViewBag.ErrorMessages as List<string>;
+        if (errorMessages?.Any() == true)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                @if (errorMessages.Count == 1)
+                {
+                    @errorMessages.First()
+                }
+                else
+                {
+                    <span>Please fix the following errors:</span>
+                    <ul class="mb-0 mt-2">
+                        @foreach (var error in errorMessages)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    }
+
     <!-- Create New Post Section -->
     @if (User.Identity?.IsAuthenticated == true)
     {
@@ -139,6 +175,39 @@
     max-width: 600px;
     margin: 0 auto;
     padding: 1rem 0;
+}
+
+/* Alert Messages */
+.alert {
+    margin-bottom: 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+    color: #059669;
+    border-left: 4px solid #10b981;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+    color: #dc2626;
+    border-left: 4px solid #ef4444;
+}
+
+.alert ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+
+.alert .btn-close {
+    opacity: 0.6;
+}
+
+.alert .btn-close:hover {
+    opacity: 1;
 }
 
 /* Create Post Card */
