@@ -1,0 +1,562 @@
+@model IEnumerable<Useless_Inventions.Models.Invention>
+
+@{
+    ViewData["Title"] = "My Drafts";
+}
+
+<div class="drafts-container">
+    <!-- Page Header -->
+    <div class="drafts-header">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h2 mb-1">
+                    <i class="bi bi-folder me-2"></i>
+                    My Drafts
+                </h1>
+                <p class="text-muted mb-0">Continue working on your unfinished inventions</p>
+            </div>
+            <div class="header-actions">
+                <a href="/Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    New Invention
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drafts List -->
+    <div class="drafts-content">
+        @if (Model != null && Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var draft in Model)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="draft-card" data-id="@draft.Id">
+                            <div class="draft-card-header">
+                                <div class="draft-status">
+                                    <i class="bi bi-pencil-square text-warning"></i>
+                                    <span class="status-text">Draft</span>
+                                </div>
+                                <div class="draft-actions">
+                                    <div class="dropdown">
+                                        <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="/Create/Draft/@draft.Id">
+                                                    <i class="bi bi-pencil me-2"></i>
+                                                    Edit Draft
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger" onclick="deleteDraft(@draft.Id)">
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Delete Draft
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="draft-card-body">
+                                <h5 class="draft-title">
+                                    @if (!string.IsNullOrEmpty(draft.Title) && draft.Title.Length >= 3)
+                                    {
+                                        <a href="/Create/Draft/@draft.Id" class="text-decoration-none">
+                                            @draft.Title
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Create/Draft/@draft.Id" class="text-decoration-none text-muted">
+                                            <em>Untitled Draft</em>
+                                        </a>
+                                    }
+                                </h5>
+                                
+                                <div class="draft-description">
+                                    @if (!string.IsNullOrEmpty(draft.Description))
+                                    {
+                                        <p class="text-muted">
+                                            @if (draft.Description.Length > 100)
+                                            {
+                                                @(draft.Description.Substring(0, 100) + "...")
+                                            }
+                                            else
+                                            {
+                                                @draft.Description
+                                            }
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted"><em>No description yet...</em></p>
+                                    }
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(draft.ImageUrl))
+                                {
+                                    <div class="draft-image">
+                                        <img src="@draft.ImageUrl" alt="Draft image" class="img-thumbnail">
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="draft-card-footer">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="draft-date">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            @if (draft.UpdatedAt.HasValue)
+                                            {
+                                                <span>Updated @GetTimeAgo(draft.UpdatedAt.Value)</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Created @GetTimeAgo(draft.CreatedAt)</span>
+                                            }
+                                        </small>
+                                    </div>
+                                    <div class="draft-completion">
+                                        @{
+                                            var completionPercentage = CalculateCompletionPercentage(draft);
+                                        }
+                                        <div class="completion-indicator">
+                                            <div class="progress" style="width: 60px; height: 6px;">
+                                                <div class="progress-bar" 
+                                                     role="progressbar" 
+                                                     style="width: @(completionPercentage)%" 
+                                                     aria-valuenow="@completionPercentage" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted ms-2">@(completionPercentage)%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="draft-actions-bottom mt-2">
+                                    <a href="/Create/Draft/@draft.Id" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil me-1"></i>
+                                        Continue Editing
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="drafts-stats mt-4">
+                <div class="stats-card">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <span class="stat-number">@Model.Count()</span>
+                                <span class="stat-label">Total Drafts</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <span class="stat-number">@Model.Count(d => !string.IsNullOrEmpty(d.Title) && d.Title.Length >= 3)</span>
+                                <span class="stat-label">With Titles</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <span class="stat-number">@Model.Count(d => !string.IsNullOrEmpty(d.ImageUrl))</span>
+                                <span class="stat-label">With Images</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-drafts">
+                <div class="empty-content">
+                    <div class="empty-icon">
+                        <i class="bi bi-folder2-open display-1 text-muted"></i>
+                    </div>
+                    <h4>No drafts yet</h4>
+                    <p class="text-muted">
+                        Start creating an invention and save it as a draft to see it here.
+                    </p>
+                    <div class="empty-actions">
+                        <a href="/Create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Create Your First Invention
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .drafts-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .drafts-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .draft-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .draft-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .draft-card-header {
+        padding: 1rem 1.25rem 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .draft-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--warning, #ffc107);
+    }
+
+    .draft-actions .btn-link {
+        color: var(--text-muted);
+        border: none;
+        padding: 0.25rem;
+    }
+
+    .draft-actions .btn-link:hover {
+        color: var(--accent);
+    }
+
+    .draft-card-body {
+        padding: 1.25rem;
+        flex: 1;
+    }
+
+    .draft-title {
+        margin-bottom: 0.75rem;
+    }
+
+    .draft-title a {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .draft-title a:hover {
+        color: var(--accent);
+    }
+
+    .draft-description {
+        margin-bottom: 1rem;
+    }
+
+    .draft-description p {
+        margin: 0;
+        line-height: 1.4;
+        font-size: 0.9rem;
+    }
+
+    .draft-image {
+        margin-top: 1rem;
+    }
+
+    .draft-image img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .draft-card-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        background: var(--background);
+        margin-top: auto;
+    }
+
+    .completion-indicator {
+        display: flex;
+        align-items: center;
+    }
+
+    .progress {
+        background-color: var(--border);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--danger, #dc3545) 0%, var(--warning, #ffc107) 50%, var(--success, #28a745) 100%);
+        transition: width 0.3s ease;
+    }
+
+    .draft-actions-bottom {
+        text-align: center;
+    }
+
+    .stats-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Empty state */
+    .empty-drafts {
+        padding: 4rem 2rem;
+        text-align: center;
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .empty-content {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .empty-icon {
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+
+    .empty-content h4 {
+        color: var(--text);
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-content p {
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .drafts-container {
+            padding: 1rem;
+        }
+
+        .drafts-header .d-flex {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .header-actions {
+            width: 100%;
+        }
+
+        .header-actions .btn {
+            flex: 1;
+        }
+
+        .draft-card-body {
+            padding: 1rem;
+        }
+
+        .draft-card-footer {
+            padding: 0.75rem 1rem;
+        }
+
+        .completion-indicator {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .stats-card {
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.25rem;
+        }
+
+        .empty-drafts {
+            padding: 2rem 1rem;
+        }
+    }
+
+    /* Loading animation for deletion */
+    .draft-card.deleting {
+        opacity: 0.5;
+        pointer-events: none;
+        transform: scale(0.95);
+    }
+</style>
+
+<script>
+    async function deleteDraft(draftId) {
+        if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+            return;
+        }
+
+        const draftCard = document.querySelector(`[data-id="${draftId}"]`);
+        
+        try {
+            draftCard.classList.add('deleting');
+
+            const response = await fetch('/Create/DeleteDraft', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ id: draftId })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Animate removal
+                draftCard.style.transition = 'all 0.3s ease';
+                draftCard.style.opacity = '0';
+                draftCard.style.transform = 'translateY(-20px)';
+                
+                setTimeout(() => {
+                    draftCard.remove();
+                    
+                    // Check if no drafts remain and reload to show empty state
+                    const remainingDrafts = document.querySelectorAll('.draft-card');
+                    if (remainingDrafts.length === 0) {
+                        location.reload();
+                    } else {
+                        // Update stats
+                        updateStats();
+                    }
+                }, 300);
+            } else {
+                draftCard.classList.remove('deleting');
+                alert(result.message || 'Failed to delete draft');
+            }
+        } catch (error) {
+            draftCard.classList.remove('deleting');
+            console.error('Error deleting draft:', error);
+            alert('An error occurred while deleting the draft. Please try again.');
+        }
+    }
+
+    function updateStats() {
+        // Recalculate and update stats
+        const remainingDrafts = document.querySelectorAll('.draft-card');
+        const statsNumbers = document.querySelectorAll('.stat-number');
+        
+        if (statsNumbers.length >= 1) {
+            statsNumbers[0].textContent = remainingDrafts.length;
+        }
+        
+        // Count drafts with titles
+        let withTitles = 0;
+        let withImages = 0;
+        
+        remainingDrafts.forEach(card => {
+            const titleElement = card.querySelector('.draft-title a');
+            if (titleElement && !titleElement.textContent.includes('Untitled Draft')) {
+                withTitles++;
+            }
+            
+            const imageElement = card.querySelector('.draft-image');
+            if (imageElement) {
+                withImages++;
+            }
+        });
+        
+        if (statsNumbers.length >= 2) {
+            statsNumbers[1].textContent = withTitles;
+        }
+        if (statsNumbers.length >= 3) {
+            statsNumbers[2].textContent = withImages;
+        }
+    }
+</script>
+
+@functions {
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+
+        if (timeSpan.TotalDays > 7)
+            return dateTime.ToString("MMM dd, yyyy");
+        else if (timeSpan.TotalDays >= 1)
+            return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+        else if (timeSpan.TotalHours >= 1)
+            return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+        else if (timeSpan.TotalMinutes >= 1)
+            return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+        else
+            return "Just now";
+    }
+
+    private int CalculateCompletionPercentage(Useless_Inventions.Models.Invention draft)
+    {
+        int score = 0;
+        
+        // Title (40 points)
+        if (!string.IsNullOrEmpty(draft.Title) && draft.Title.Length >= 3)
+            score += 40;
+            
+        // Description (40 points)
+        if (!string.IsNullOrEmpty(draft.Description) && draft.Description.Length >= 10)
+            score += 40;
+            
+        // Image (20 points)
+        if (!string.IsNullOrEmpty(draft.ImageUrl))
+            score += 20;
+            
+        return score;
+    }
+}

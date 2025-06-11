@@ -1,0 +1,38 @@
+@* UploadPicture.cshtml: A reusable image upload and preview component *@
+@{
+    var inputId = $"upload_{Guid.NewGuid().ToString("N")}";
+}
+<div class="upload-picture-component mb-3">
+    <label for="@inputId" class="form-label">Upload Image</label>
+    <input type="file" id="@inputId" name="UploadedImage" accept="image/*" class="form-control" onchange="previewImage(event, '@inputId')" />
+    <div class="mt-2">
+        <img id="preview_@inputId" src="" alt="Preview" style="max-width: 120px; max-height: 120px; border-radius: 0.5rem; border: 1px solid #eee; display: none;" />
+    </div>
+</div>
+<script>
+function previewImage(event, inputId) {
+    var input = document.getElementById(inputId);
+    var preview = document.getElementById('preview_' + inputId);
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+}
+</script>
+<style>
+.upload-picture-component input[type="file"] {
+    padding: 0.3rem 0.5rem;
+}
+.upload-picture-component img {
+    margin-top: 0.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    background: #fafbfc;
+}
+</style> 

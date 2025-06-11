@@ -1,0 +1,220 @@
+@model string
+
+@{
+    var query = Model ?? "";
+}
+
+<div class="no-results-container">
+    <div class="no-results-content">
+        <div class="no-results-icon">
+            <i class="bi bi-search display-1 text-muted"></i>
+        </div>
+        
+        <h3 class="no-results-title">No results found</h3>
+        
+        <p class="no-results-message">
+            We couldn't find anything matching "<strong>@query</strong>"
+        </p>
+        
+        <div class="suggestions-section">
+            <h5>Try these suggestions:</h5>
+            <ul class="suggestions-list">
+                <li>Check your spelling</li>
+                <li>Try different or more general keywords</li>
+                <li>Use fewer keywords</li>
+                <li>Try searching for users with @@ symbol</li>
+            </ul>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/Search" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>
+                Try New Search
+            </a>
+            <a href="/Explore/Trends" class="btn btn-outline-secondary">
+                <i class="bi bi-fire me-2"></i>
+                Browse Trending
+            </a>
+            <a href="/Create" class="btn btn-outline-success">
+                <i class="bi bi-plus-circle me-2"></i>
+                Create Something New
+            </a>
+        </div>
+        
+        <div class="popular-alternatives">
+            <h6>Or explore these popular topics:</h6>
+            <div class="topic-tags">
+                <a href="/Search/Results?query=funny" class="topic-tag">funny</a>
+                <a href="/Search/Results?query=creative" class="topic-tag">creative</a>
+                <a href="/Search/Results?query=useful" class="topic-tag">useful</a>
+                <a href="/Search/Results?query=weird" class="topic-tag">weird</a>
+                <a href="/Search/Results?query=gadget" class="topic-tag">gadget</a>
+                <a href="/Search/Results?query=invention" class="topic-tag">invention</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .no-results-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+        padding: 2rem 1rem;
+    }
+
+    .no-results-content {
+        text-align: center;
+        max-width: 500px;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        border: 1px solid var(--border);
+    }
+
+    .no-results-icon {
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+
+    .no-results-title {
+        color: var(--text);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .no-results-message {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .suggestions-section {
+        background: var(--background);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+    }
+
+    .suggestions-section h5 {
+        color: var(--text);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .suggestions-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+    }
+
+    .suggestions-list li {
+        color: var(--text-muted);
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .suggestions-list li::before {
+        content: "•";
+        color: var(--accent);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+
+    .action-buttons .btn {
+        flex: 1;
+        min-width: 140px;
+        max-width: 200px;
+    }
+
+    .popular-alternatives {
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+    }
+
+    .popular-alternatives h6 {
+        color: var(--text);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .topic-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .topic-tag {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        background: var(--background);
+        color: var(--text);
+        text-decoration: none;
+        border-radius: 16px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .topic-tag:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .no-results-container {
+            min-height: 300px;
+            padding: 1rem;
+        }
+
+        .no-results-content {
+            padding: 2rem 1.5rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-buttons .btn {
+            flex: none;
+            width: 100%;
+            max-width: none;
+        }
+
+        .suggestions-section {
+            padding: 1rem;
+        }
+
+        .topic-tags {
+            gap: 0.4rem;
+        }
+
+        .topic-tag {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
+    }
+</style>

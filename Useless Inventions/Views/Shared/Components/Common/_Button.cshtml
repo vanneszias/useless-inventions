@@ -1,0 +1,488 @@
+@model dynamic
+
+@{
+    var text = ViewBag.Text as string ?? "Button";
+    var icon = ViewBag.Icon as string ?? "";
+    var variant = ViewBag.Variant as string ?? "primary";
+    var size = ViewBag.Size as string ?? "md";
+    var type = ViewBag.Type as string ?? "button";
+    var href = ViewBag.Href as string ?? "";
+    var target = ViewBag.Target as string ?? "";
+    var disabled = ViewBag.Disabled as bool? ?? false;
+    var loading = ViewBag.Loading as bool? ?? false;
+    var fullWidth = ViewBag.FullWidth as bool? ?? false;
+    var outline = ViewBag.Outline as bool? ?? false;
+    var rounded = ViewBag.Rounded as bool? ?? false;
+    var ghost = ViewBag.Ghost as bool? ?? false;
+    var iconOnly = ViewBag.IconOnly as bool? ?? false;
+    var onClick = ViewBag.OnClick as string ?? "";
+    var className = ViewBag.ClassName as string ?? "";
+    var id = ViewBag.Id as string ?? "";
+    var dataAttributes = ViewBag.DataAttributes as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var ariaLabel = ViewBag.AriaLabel as string ?? "";
+    
+    var isLink = !string.IsNullOrEmpty(href);
+    var tagName = isLink ? "a" : "button";
+    
+    var cssClasses = new List<string> 
+    { 
+        "btn-component",
+        $"btn-{variant}",
+        $"btn-{size}"
+    };
+    
+    if (outline) cssClasses.Add("btn-outline");
+    if (ghost) cssClasses.Add("btn-ghost");
+    if (rounded) cssClasses.Add("btn-rounded");
+    if (fullWidth) cssClasses.Add("btn-full-width");
+    if (iconOnly) cssClasses.Add("btn-icon-only");
+    if (loading) cssClasses.Add("btn-loading");
+    if (disabled) cssClasses.Add("btn-disabled");
+    if (!string.IsNullOrEmpty(className)) cssClasses.Add(className);
+    
+    var attributes = new Dictionary<string, string>();
+    
+    if (isLink)
+    {
+        attributes["href"] = href;
+        if (!string.IsNullOrEmpty(target)) attributes["target"] = target;
+        if (target == "_blank") attributes["rel"] = "noopener noreferrer";
+    }
+    else
+    {
+        attributes["type"] = type;
+        if (disabled) attributes["disabled"] = "disabled";
+    }
+    
+    if (!string.IsNullOrEmpty(onClick)) attributes["onclick"] = onClick;
+    if (!string.IsNullOrEmpty(id)) attributes["id"] = id;
+    if (!string.IsNullOrEmpty(ariaLabel)) attributes["aria-label"] = ariaLabel;
+    if (loading) attributes["aria-busy"] = "true";
+    
+    foreach (var data in dataAttributes)
+    {
+        attributes[$"data-{data.Key}"] = data.Value;
+    }
+    
+    var attributeString = string.Join(" ", attributes.Select(a => $"{a.Key}=\"{a.Value}\""));
+    var classString = string.Join(" ", cssClasses);
+}
+
+@if (isLink)
+{
+    <a class="@classString" @Html.Raw(attributeString)>
+        @if (loading)
+        {
+            <span class="btn-spinner">
+                <i class="bi bi-arrow-clockwise"></i>
+            </span>
+        }
+        
+        @if (!string.IsNullOrEmpty(icon) && !loading)
+        {
+            <i class="@icon @(iconOnly ? "" : "me-2")"></i>
+        }
+        
+        @if (!iconOnly)
+        {
+            <span class="btn-text">@text</span>
+        }
+    </a>
+}
+else
+{
+    <button class="@classString" @Html.Raw(attributeString)>
+        @if (loading)
+        {
+            <span class="btn-spinner">
+                <i class="bi bi-arrow-clockwise"></i>
+            </span>
+        }
+        
+        @if (!string.IsNullOrEmpty(icon) && !loading)
+        {
+            <i class="@icon @(iconOnly ? "" : "me-2")"></i>
+        }
+        
+        @if (!iconOnly)
+        {
+            <span class="btn-text">@text</span>
+        }
+    </button>
+}
+
+<style>
+.btn-component {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.btn-component:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Sizes */
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+    min-height: 28px;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    min-height: 36px;
+}
+
+.btn-md {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    border-radius: 0.75rem;
+    min-height: 44px;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    border-radius: 0.875rem;
+    min-height: 52px;
+}
+
+.btn-xl {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.25rem;
+    border-radius: 1rem;
+    min-height: 60px;
+}
+
+/* Variants */
+.btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover:not(.btn-disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-secondary:hover:not(.btn-disabled) {
+    background: var(--surface-hover);
+    border-color: var(--border-light);
+    color: var(--text);
+}
+
+.btn-success {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.btn-success:hover:not(.btn-disabled) {
+    background: #00b570;
+    border-color: #00b570;
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover:not(.btn-disabled) {
+    background: #e6a01a;
+    border-color: #e6a01a;
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover:not(.btn-disabled) {
+    background: #e33e4a;
+    border-color: #e33e4a;
+    color: white;
+}
+
+.btn-dark {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--background);
+}
+
+.btn-dark:hover:not(.btn-disabled) {
+    background: var(--text-secondary);
+    border-color: var(--text-secondary);
+    color: var(--background);
+}
+
+.btn-light {
+    background: var(--background);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-light:hover:not(.btn-disabled) {
+    background: var(--surface);
+    border-color: var(--border-light);
+    color: var(--text);
+}
+
+/* Outline variants */
+.btn-outline.btn-primary {
+    background: transparent;
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-outline.btn-primary:hover:not(.btn-disabled) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-outline.btn-secondary {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-outline.btn-secondary:hover:not(.btn-disabled) {
+    background: var(--surface);
+    border-color: var(--border-light);
+    color: var(--text);
+}
+
+.btn-outline.btn-success {
+    background: transparent;
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.btn-outline.btn-success:hover:not(.btn-disabled) {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.btn-outline.btn-warning {
+    background: transparent;
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.btn-outline.btn-warning:hover:not(.btn-disabled) {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+.btn-outline.btn-danger {
+    background: transparent;
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-outline.btn-danger:hover:not(.btn-disabled) {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: white;
+}
+
+/* Ghost variants */
+.btn-ghost {
+    background: transparent;
+    border-color: transparent;
+}
+
+.btn-ghost.btn-primary {
+    color: var(--accent);
+}
+
+.btn-ghost.btn-primary:hover:not(.btn-disabled) {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.btn-ghost.btn-secondary {
+    color: var(--text);
+}
+
+.btn-ghost.btn-secondary:hover:not(.btn-disabled) {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+.btn-ghost.btn-success {
+    color: var(--success);
+}
+
+.btn-ghost.btn-success:hover:not(.btn-disabled) {
+    background: rgba(0, 208, 132, 0.1);
+    color: var(--success);
+}
+
+.btn-ghost.btn-warning {
+    color: var(--warning);
+}
+
+.btn-ghost.btn-warning:hover:not(.btn-disabled) {
+    background: rgba(255, 176, 32, 0.1);
+    color: var(--warning);
+}
+
+.btn-ghost.btn-danger {
+    color: var(--danger);
+}
+
+.btn-ghost.btn-danger:hover:not(.btn-disabled) {
+    background: rgba(255, 71, 87, 0.1);
+    color: var(--danger);
+}
+
+/* Special styles */
+.btn-rounded {
+    border-radius: 50px !important;
+}
+
+.btn-full-width {
+    width: 100%;
+}
+
+.btn-icon-only {
+    aspect-ratio: 1;
+    padding: 0.75rem;
+}
+
+.btn-icon-only.btn-xs {
+    padding: 0.25rem;
+}
+
+.btn-icon-only.btn-sm {
+    padding: 0.5rem;
+}
+
+.btn-icon-only.btn-lg {
+    padding: 1rem;
+}
+
+.btn-icon-only.btn-xl {
+    padding: 1.25rem;
+}
+
+/* Loading state */
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-spinner {
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+.btn-icon-only .btn-spinner {
+    margin-right: 0;
+}
+
+@@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Disabled state */
+.btn-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Hover effects */
+.btn-component:not(.btn-disabled):not(.btn-ghost):hover {
+    transform: translateY(-1px);
+}
+
+.btn-component:not(.btn-disabled):active {
+    transform: translateY(0);
+    transition: transform 0.1s ease;
+}
+
+/* Mobile adjustments */
+@@media (max-width: 767.98px) {
+    .btn-component:not(.btn-disabled):hover {
+        transform: none;
+    }
+    
+    .btn-md {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 40px;
+    }
+    
+    .btn-lg {
+        padding: 0.875rem 1.75rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+}
+
+/* Accessibility */
+@@media (prefers-reduced-motion: reduce) {
+    .btn-component,
+    .btn-spinner {
+        transition: none;
+        animation: none;
+        transform: none !important;
+    }
+}
+
+/* Focus ring for keyboard navigation */
+.btn-component:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@@media print {
+    .btn-component {
+        border: 1px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+}
+</style>

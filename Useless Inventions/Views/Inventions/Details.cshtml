@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Identity.UI
 @using Useless_Inventions.Models
 @model Useless_Inventions.Models.Invention
-@inject UserManager<IdentityUser> UserManager
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = Model.Title;
@@ -15,7 +15,8 @@
         Comments = Model.Comments?.Count ?? 0,
         ImageUrl = Model.ImageUrl,
         Id = Model.Id,
-        IsLiked = Model.Likes != null && Model.Likes.Any(l => l.UserId == currentUserId)
+        IsLiked = Model.Likes != null && Model.Likes.Any(l => l.UserId == currentUserId),
+        AvatarUrl = Model.User?.AvatarUrl
     };
 }
 

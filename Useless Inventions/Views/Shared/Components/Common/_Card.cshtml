@@ -1,0 +1,283 @@
+@model dynamic
+
+@{
+    var title = ViewBag.Title as string ?? "";
+    var subtitle = ViewBag.Subtitle as string ?? "";
+    var icon = ViewBag.Icon as string ?? "";
+    var cardClass = ViewBag.CardClass as string ?? "";
+    var headerClass = ViewBag.HeaderClass as string ?? "";
+    var bodyClass = ViewBag.BodyClass as string ?? "";
+    var footerClass = ViewBag.FooterClass as string ?? "";
+    var showHeader = !string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(icon);
+    var hasFooter = ViewBag.HasFooter as bool? ?? false;
+    var clickable = ViewBag.Clickable as bool? ?? false;
+    var href = ViewBag.Href as string ?? "";
+    var loading = ViewBag.Loading as bool? ?? false;
+}
+
+<div class="reusable-card @cardClass @(clickable ? "clickable" : "") @(loading ? "loading" : "")" 
+     @(clickable && !string.IsNullOrEmpty(href) ? $"onclick=\"window.location.href='{href}'\"" : "")>
+    
+    @if (showHeader)
+    {
+        <div class="card-header-custom @headerClass">
+            @if (!string.IsNullOrEmpty(icon))
+            {
+                <i class="@icon me-2"></i>
+            }
+            <div class="header-content">
+                @if (!string.IsNullOrEmpty(title))
+                {
+                    <h3 class="card-title-custom">@title</h3>
+                }
+                @if (!string.IsNullOrEmpty(subtitle))
+                {
+                    <p class="card-subtitle-custom">@subtitle</p>
+                }
+            </div>
+            @if (ViewBag.HeaderActions != null)
+            {
+                <div class="header-actions">
+                    @Html.Raw(ViewBag.HeaderActions)
+                </div>
+            }
+        </div>
+    }
+    
+    <div class="card-body-custom @bodyClass">
+        @if (loading)
+        {
+            <div class="loading-skeleton">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line skeleton-text"></div>
+                <div class="skeleton-line skeleton-text short"></div>
+            </div>
+        }
+        else
+        {
+            @RenderBody()
+        }
+    </div>
+    
+    @if (hasFooter)
+    {
+        <div class="card-footer-custom @footerClass">
+            @Html.Raw(ViewBag.FooterContent)
+        </div>
+    }
+</div>
+
+<style>
+.reusable-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.reusable-card:hover {
+    border-color: var(--border-light);
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.reusable-card.clickable {
+    cursor: pointer;
+}
+
+.reusable-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--shadow);
+}
+
+.reusable-card.clickable:active {
+    transform: translateY(0);
+}
+
+.card-header-custom {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.card-header-custom i {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.header-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-title-custom {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+}
+
+.card-subtitle-custom {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.card-body-custom {
+    padding: 1.25rem;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.card-footer-custom {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: rgba(79, 140, 255, 0.02);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Loading skeleton */
+.loading-skeleton {
+    pointer-events: none;
+}
+
+.skeleton-line {
+    height: 1rem;
+    background: linear-gradient(90deg, var(--border) 25%, var(--border-light) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    border-radius: 0.25rem;
+    margin-bottom: 0.75rem;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+}
+
+.skeleton-text {
+    width: 100%;
+}
+
+.skeleton-text.short {
+    width: 75%;
+    margin-bottom: 0;
+}
+
+@@keyframes skeleton-loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Card variants */
+.reusable-card.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+}
+
+.reusable-card.elevated {
+    box-shadow: 0 8px 25px var(--shadow);
+}
+
+.reusable-card.minimal {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.reusable-card.minimal:hover {
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.reusable-card.compact .card-header-custom {
+    padding: 1rem;
+}
+
+.reusable-card.compact .card-body-custom {
+    padding: 1rem;
+}
+
+.reusable-card.compact .card-footer-custom {
+    padding: 0.75rem 1rem;
+}
+
+/* Status variants */
+.reusable-card.success {
+    border-left: 4px solid var(--success);
+}
+
+.reusable-card.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.reusable-card.danger {
+    border-left: 4px solid var(--danger);
+}
+
+.reusable-card.primary {
+    border-left: 4px solid var(--accent);
+}
+
+/* Mobile responsive */
+@@media (max-width: 767.98px) {
+    .card-header-custom {
+        padding: 1rem;
+    }
+    
+    .card-body-custom {
+        padding: 1rem;
+    }
+    
+    .card-footer-custom {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-title-custom {
+        font-size: 1rem;
+    }
+    
+    .header-actions {
+        margin-left: 0.5rem;
+    }
+    
+    .reusable-card.clickable:hover {
+        transform: none;
+    }
+}
+
+/* Accessibility */
+@@media (prefers-reduced-motion: reduce) {
+    .reusable-card,
+    .skeleton-line {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* Focus styles */
+.reusable-card.clickable:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+</style>

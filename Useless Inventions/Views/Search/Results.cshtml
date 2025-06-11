@@ -1,0 +1,604 @@
+@model Useless_Inventions.Controllers.SearchResultsViewModel
+
+@{
+    ViewData["Title"] = $"Search results for \"{ViewBag.Query}\"";
+    var query = ViewBag.Query as string ?? "";
+    var searchType = ViewBag.SearchType as string ?? "all";
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var users = ViewBag.Users as dynamic ?? new List<dynamic>();
+}
+
+<div class="search-results-container">
+    <!-- Search Header -->
+    <div class="search-header">
+        <div class="search-box-container">
+            <form asp-action="Results" method="get" class="search-form">
+                <div class="search-input-group">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="query" value="@query" 
+                           class="search-input" 
+                           placeholder="Search inventions, people, or hashtags..." 
+                           autocomplete="off"
+                           id="searchInput">
+                    <button type="submit" class="search-btn">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Header -->
+    <div class="results-header">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h1 class="h3 mb-1">Search Results</h1>
+                <p class="text-muted mb-0">
+                    Results for "<strong>@query</strong>"
+                    @if (searchType == "inventions")
+                    {
+                        <span> - @Model.TotalInventions inventions found</span>
+                    }
+                    else if (searchType == "people")
+                    {
+                        <span> - @Model.TotalUsers people found</span>
+                    }
+                    else
+                    {
+                        <span> - @(Model.TotalInventions + Model.TotalUsers) results found</span>
+                    }
+                </p>
+            </div>
+            <a href="/Search" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>
+                New Search
+            </a>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <a href="/Search/Results?query=@Uri.EscapeDataString(query)&type=all" 
+               class="filter-tab @(searchType == "all" ? "active" : "")">
+                <i class="bi bi-grid me-2"></i>
+                All (@(Model.TotalInventions + Model.TotalUsers))
+            </a>
+            <a href="/Search/Results?query=@Uri.EscapeDataString(query)&type=inventions" 
+               class="filter-tab @(searchType == "inventions" ? "active" : "")">
+                <i class="bi bi-lightbulb me-2"></i>
+                Inventions (@Model.TotalInventions)
+            </a>
+            <a href="/Search/Results?query=@Uri.EscapeDataString(query)&type=people" 
+               class="filter-tab @(searchType == "people" ? "active" : "")">
+                <i class="bi bi-people me-2"></i>
+                People (@Model.TotalUsers)
+            </a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Search Results Content -->
+    <div class="search-results-content">
+        @if (searchType == "all")
+        {
+            <!-- All Results View -->
+            @if (Model.TotalInventions > 0 || Model.TotalUsers > 0)
+            {
+                @if (Model.Inventions.Any())
+                {
+                    <div class="results-section">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h4 class="section-title">
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                Inventions
+                            </h4>
+                            @if (Model.TotalInventions > Model.Inventions.Count())
+                            {
+                                <a href="/Search/Results?query=@Uri.EscapeDataString(query)&type=inventions" class="view-all-link">
+                                    View all @Model.TotalInventions <i class="bi bi-arrow-right"></i>
+                                </a>
+                            }
+                        </div>
+                        
+                        <div class="row g-3">
+                            @foreach (var invention in Model.Inventions)
+                            {
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    @await Html.PartialAsync("_InventionCard", invention)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (((IEnumerable<dynamic>)users).Any())
+                {
+                    <div class="results-section">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h4 class="section-title">
+                                <i class="bi bi-people text-primary me-2"></i>
+                                People
+                            </h4>
+                            @if (Model.TotalUsers > ((IEnumerable<dynamic>)users).Count())
+                            {
+                                <a href="/Search/Results?query=@Uri.EscapeDataString(query)&type=people" class="view-all-link">
+                                    View all @Model.TotalUsers <i class="bi bi-arrow-right"></i>
+                                </a>
+                            }
+                        </div>
+                        
+                        <div class="row g-3">
+                            @foreach (var user in users)
+                            {
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                    <div class="user-result-card">
+                                        <div class="user-avatar-section">
+                                            @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                            {
+                                                <img src="@user.AvatarUrl" alt="@user.UserName" class="user-avatar">
+                                            }
+                                            else
+                                            {
+                                                <div class="user-avatar-placeholder">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                        
+                                        <div class="user-info">
+                                            <h6 class="user-name">
+                                                <a href="/Profile/@user.UserName" class="text-decoration-none">
+                                                    @@user.UserName
+                                                </a>
+                                            </h6>
+                                            <p class="user-stats">@user.InventionCount inventions</p>
+                                        </div>
+                                        
+                                        <div class="user-actions">
+                                            <a href="/Profile/@user.UserName" class="btn btn-outline-primary btn-sm">
+                                                View Profile
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @await Html.PartialAsync("_NoResults", query)
+            }
+        }
+        else if (searchType == "inventions")
+        {
+            <!-- Inventions Results -->
+            @if (Model.Inventions.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var invention in Model.Inventions)
+                    {
+                        <div class="col-12 col-md-6 col-lg-4">
+                            @await Html.PartialAsync("_InventionCard", invention)
+                        </div>
+                    }
+                </div>
+                
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Search results pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@(currentPage - 1)">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            
+                            @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@i">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                            
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@(currentPage + 1)">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                @await Html.PartialAsync("_NoResults", query)
+            }
+        }
+        else if (searchType == "people")
+        {
+            <!-- People Results -->
+            @if (((IEnumerable<dynamic>)users).Any())
+            {
+                <div class="row g-3">
+                    @foreach (var user in users)
+                    {
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                            <div class="user-result-card">
+                                <div class="user-avatar-section">
+                                    @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                    {
+                                        <img src="@user.AvatarUrl" alt="@user.UserName" class="user-avatar">
+                                    }
+                                    else
+                                    {
+                                        <div class="user-avatar-placeholder">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="user-info">
+                                    <h6 class="user-name">
+                                        <a href="/Profile/@user.UserName" class="text-decoration-none">
+                                            @@user.UserName
+                                        </a>
+                                    </h6>
+                                    <p class="user-email text-muted">@user.Email</p>
+                                    <p class="user-stats">@user.InventionCount inventions</p>
+                                </div>
+                                
+                                <div class="user-actions">
+                                    <a href="/Profile/@user.UserName" class="btn btn-outline-primary btn-sm">
+                                        View Profile
+                                    </a>
+                                    <button class="btn btn-primary btn-sm" onclick="followUser('@user.Id')">
+                                        Follow
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Search results pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@(currentPage - 1)">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            
+                            @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@i">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                            
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="/Search/Results?query=@Uri.EscapeDataString(query)&type=@searchType&page=@(currentPage + 1)">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                @await Html.PartialAsync("_NoResults", query)
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .search-results-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .search-header {
+        margin-bottom: 2rem;
+    }
+
+    .search-box-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-input-group:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 2px 20px rgba(79, 140, 255, 0.1);
+    }
+
+    .search-icon {
+        color: var(--text-muted);
+        font-size: 1.25rem;
+        margin-right: 1rem;
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 1.1rem;
+        color: var(--text);
+        outline: none;
+    }
+
+    .search-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .search-btn {
+        background: var(--accent);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .search-btn:hover {
+        background: var(--accent-dark, #4a90e2);
+        transform: scale(1.05);
+    }
+
+    .results-header {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 0.75rem 1rem;
+        background: var(--background);
+        color: var(--text);
+        text-decoration: none;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .filter-tab:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+    }
+
+    .filter-tab.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+    }
+
+    .results-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .view-all-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .view-all-link:hover {
+        color: var(--accent-dark, #4a90e2);
+    }
+
+    .user-result-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .user-result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .user-avatar-section {
+        margin-bottom: 1rem;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border);
+    }
+
+    .user-avatar-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        border: 2px solid var(--border);
+        margin: 0 auto;
+    }
+
+    .user-info {
+        margin-bottom: 1rem;
+    }
+
+    .user-name a {
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .user-name a:hover {
+        color: var(--accent);
+    }
+
+    .user-email {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .user-stats {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .user-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .pagination {
+        margin: 0;
+    }
+
+    .page-link {
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.75rem;
+    }
+
+    .page-link:hover {
+        color: var(--accent);
+        background: var(--background);
+        border-color: var(--accent);
+    }
+
+    .page-item.active .page-link {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .search-results-container {
+            padding: 0.75rem;
+        }
+
+        .search-input-group {
+            padding: 0.6rem 1rem;
+        }
+
+        .search-input {
+            font-size: 1rem;
+        }
+
+        .search-btn {
+            width: 36px;
+            height: 36px;
+            margin-left: 0.5rem;
+        }
+
+        .results-header {
+            padding: 1rem;
+        }
+
+        .filter-tabs {
+            gap: 0.25rem;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .user-actions {
+            flex-direction: row;
+        }
+
+        .user-actions .btn {
+            flex: 1;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+    }
+</style>
+
+<script>
+    function followUser(userId) {
+        // Follow functionality would be implemented here
+        alert('Follow functionality would be implemented here for user: ' + userId);
+    }
+</script>

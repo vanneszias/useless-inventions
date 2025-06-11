@@ -1,0 +1,194 @@
+@model Useless_Inventions.Models.Invention
+
+<div class="invention-card">
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <div class="card-image">
+            <img src="@Model.ImageUrl" alt="@Model.Title" class="card-img-top">
+        </div>
+    }
+    
+    <div class="card-body">
+        <h5 class="card-title">
+            <a href="/Inventions/Details/@Model.Id" class="text-decoration-none">
+                @Model.Title
+            </a>
+        </h5>
+        
+        <p class="card-text">
+            @if (Model.Description.Length > 120)
+            {
+                @(Model.Description.Substring(0, 120) + "...")
+            }
+            else
+            {
+                @Model.Description
+            }
+        </p>
+        
+        <div class="card-footer-info">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="user-info">
+                    <a href="/Profile/@Model.User?.UserName" class="text-decoration-none">
+                        <div class="d-flex align-items-center">
+                            @if (!string.IsNullOrEmpty(Model.User?.AvatarUrl))
+                            {
+                                <img src="@Model.User.AvatarUrl" alt="@Model.User.UserName" class="user-avatar me-2">
+                            }
+                            else
+                            {
+                                <div class="user-avatar-placeholder me-2">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                            }
+                            <span class="user-name">@Model.User?.UserName</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="engagement-stats">
+                    <span class="stat-item">
+                        <i class="bi bi-heart-fill text-danger"></i>
+                        @Model.Likes.Count
+                    </span>
+                    <span class="stat-item">
+                        <i class="bi bi-chat"></i>
+                        @Model.Comments.Count
+                    </span>
+                </div>
+            </div>
+            
+            <div class="creation-time mt-2">
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>
+                    @Model.CreatedAt.ToString("MMM dd, yyyy")
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .invention-card {
+        height: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: var(--surface);
+    }
+
+    .invention-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .card-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .card-img-top {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .invention-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .card-body {
+        padding: 1.25rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-title a {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 1.1rem;
+        line-height: 1.3;
+    }
+
+    .card-title a:hover {
+        color: var(--accent);
+    }
+
+    .card-text {
+        color: var(--text-muted);
+        line-height: 1.5;
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+
+    .card-footer-info {
+        margin-top: auto;
+    }
+
+    .user-info .user-name {
+        font-weight: 500;
+        color: var(--text);
+        font-size: 0.875rem;
+    }
+
+    .user-info a:hover .user-name {
+        color: var(--accent);
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    .engagement-stats {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .creation-time {
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+
+        .engagement-stats {
+            gap: 0.5rem;
+        }
+
+        .stat-item {
+            font-size: 0.8rem;
+        }
+    }
+</style>

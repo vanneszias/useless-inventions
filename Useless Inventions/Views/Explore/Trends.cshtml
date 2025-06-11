@@ -1,0 +1,352 @@
+@model IEnumerable<Useless_Inventions.Models.Invention>
+
+@{
+    ViewData["Title"] = "Explore Trends";
+    var trendingHashtags = ViewBag.TrendingHashtags as List<string> ?? new List<string>();
+}
+
+<div class="explore-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h2 mb-1">Trending Now</h1>
+                <p class="text-muted mb-0">Discover what's popular in the world of useless inventions</p>
+            </div>
+            <div class="explore-nav">
+                <a href="/Explore/Trends" class="btn btn-sm btn-primary">Trends</a>
+                <a href="/Explore/People" class="btn btn-sm btn-outline-secondary">People</a>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Trending Hashtags Section -->
+    @if (trendingHashtags.Any())
+    {
+        <div class="trending-hashtags mb-4">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-hash text-primary me-2"></i>
+                Trending Hashtags
+            </h3>
+            <div class="hashtag-cloud">
+                @foreach (var hashtag in trendingHashtags)
+                {
+                    <a href="/Search?query=@Uri.EscapeDataString(hashtag)" class="hashtag-link">
+                        @hashtag
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Trending Inventions -->
+    <div class="trending-inventions">
+        <h3 class="h5 mb-3">
+            <i class="bi bi-fire text-danger me-2"></i>
+            Hot Inventions This Week
+        </h3>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var invention in Model)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card trend-card">
+                            @if (!string.IsNullOrEmpty(invention.ImageUrl))
+                            {
+                                <div class="card-image">
+                                    <img src="@invention.ImageUrl" alt="@invention.Title" class="card-img-top">
+                                    <div class="trend-badge">
+                                        <i class="bi bi-trending-up"></i>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="/Inventions/Details/@invention.Id" class="text-decoration-none">
+                                        @invention.Title
+                                    </a>
+                                </h5>
+                                
+                                <p class="card-text">
+                                    @if (invention.Description.Length > 100)
+                                    {
+                                        @(invention.Description.Substring(0, 100) + "...")
+                                    }
+                                    else
+                                    {
+                                        @invention.Description
+                                    }
+                                </p>
+                                
+                                <div class="card-footer-info">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="user-info">
+                                            <a href="/Profile/@invention.User?.UserName" class="text-decoration-none">
+                                                <div class="d-flex align-items-center">
+                                                    @if (!string.IsNullOrEmpty(invention.User?.AvatarUrl))
+                                                    {
+                                                        <img src="@invention.User.AvatarUrl" alt="@invention.User.UserName" class="user-avatar me-2">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="user-avatar-placeholder me-2">
+                                                            <i class="bi bi-person"></i>
+                                                        </div>
+                                                    }
+                                                    <span class="user-name">@@@invention.User?.UserName</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        
+                                        <div class="engagement-stats">
+                                            <span class="stat-item">
+                                                <i class="bi bi-heart-fill text-danger"></i>
+                                                @invention.Likes.Count
+                                            </span>
+                                            <span class="stat-item">
+                                                <i class="bi bi-chat"></i>
+                                                @invention.Comments.Count
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="creation-time">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            @invention.CreatedAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-3">
+                    <i class="bi bi-graph-up display-1 text-muted"></i>
+                </div>
+                <h4>No Trending Inventions Yet</h4>
+                <p class="text-muted">Be the first to create something that goes viral!</p>
+                <a href="/Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Create First Invention
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .explore-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .page-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .explore-nav .btn {
+        margin-left: 0.5rem;
+    }
+
+    .trending-hashtags {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .hashtag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .hashtag-link {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .hashtag-link:hover {
+        background: var(--accent-dark, #4a90e2);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .trend-card {
+        height: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: var(--surface);
+    }
+
+    .trend-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .card-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .card-img-top {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .trend-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .trend-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 50%;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+
+    .card-body {
+        padding: 1.25rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-title a {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .card-title a:hover {
+        color: var(--accent);
+    }
+
+    .card-text {
+        color: var(--text-muted);
+        line-height: 1.5;
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+
+    .card-footer-info {
+        margin-top: auto;
+    }
+
+    .user-info .user-name {
+        font-weight: 500;
+        color: var(--text);
+        font-size: 0.875rem;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
+
+    .engagement-stats {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .creation-time {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .empty-state {
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .empty-icon {
+        opacity: 0.6;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .explore-nav {
+            margin-top: 1rem;
+        }
+
+        .explore-nav .btn {
+            margin-left: 0;
+            margin-right: 0.5rem;
+        }
+
+        .hashtag-cloud {
+            gap: 0.5rem;
+        }
+
+        .hashtag-link {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .engagement-stats {
+            gap: 0.75rem;
+        }
+    }
+</style>

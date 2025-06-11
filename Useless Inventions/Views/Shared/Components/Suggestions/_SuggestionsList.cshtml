@@ -1,24 +1,331 @@
 @using Useless_Inventions.Models
 @model IEnumerable<dynamic>
-<div class="suggestions-list mt-4">
-    <div class="fw-bold mb-2 ps-1" style="font-size:1.08rem;">Who to follow</div>
-    <div class="d-flex flex-column gap-3">
-        @foreach (var suggestion in Model)
+
+<div class="suggestions-card">
+    <div class="suggestions-header">
+        <h3 class="suggestions-title">
+            <i class="bi bi-people me-2"></i>
+            Who to follow
+        </h3>
+    </div>
+    
+    <div class="suggestions-content">
+        @if (Model != null && Model.Any())
         {
-            var profileModel = new UserProfileCardViewModel {
-                UserName = suggestion.User.UserName,
-                Email = "", // or suggestion.User.Email if available
-                AvatarUrl = "/images/avatar-placeholder.png",
-                InventionCount = suggestion.InventionCount,
-                ShowFollowButton = true,
-                IsCurrentUser = false
-            };
-            @await Html.PartialAsync("Components/User/_UserProfileCard", profileModel)
+            @foreach (var suggestion in Model.Take(3))
+            {
+                <div class="suggestion-item">
+                    <div class="suggestion-user">
+                        <a href="/profile/@suggestion.User.UserName" class="user-link">
+                            <img src="@(suggestion.User.AvatarUrl ?? "/images/default-avatar.svg")" 
+                                 alt="@suggestion.User.UserName" 
+                                 class="suggestion-avatar" />
+                        </a>
+                        <div class="user-info">
+                            <a href="/profile/@suggestion.User.UserName" class="user-name">
+                                @suggestion.User.UserName
+                            </a>
+                            <div class="user-stats">
+                                @if (suggestion.InventionCount > 0)
+                                {
+                                    <span class="stat-item">@suggestion.InventionCount inventions</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="suggestion-action">
+                        @if (suggestion.IsFollowing)
+                        {
+                            <form asp-controller="Profile" asp-action="Unfollow" method="post" class="follow-form">
+                                <input type="hidden" name="username" value="@suggestion.User.UserName" />
+                                <button type="submit" class="btn btn-following">
+                                    <i class="bi bi-check me-1"></i>Following
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Profile" asp-action="Follow" method="post" class="follow-form">
+                                <input type="hidden" name="username" value="@suggestion.User.UserName" />
+                                <button type="submit" class="btn btn-follow">
+                                    <i class="bi bi-plus me-1"></i>Follow
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-suggestions">
+                <i class="bi bi-people me-2"></i>
+                <span>No suggestions available</span>
+            </div>
         }
     </div>
+    
+    <div class="suggestions-footer">
+        <a href="/Explore/People" class="show-more-link">
+            Show more people
+            <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
 </div>
+
 <style>
-.suggestions-list {
-    max-width: 340px;
+.suggestions-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
 }
-</style> 
+
+.suggestions-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.suggestions-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.suggestions-title i {
+    color: var(--accent);
+}
+
+.suggestions-content {
+    padding: 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(79, 140, 255, 0.02);
+}
+
+.suggestion-user {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 0.75rem;
+}
+
+.user-link {
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.suggestion-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    transition: border-color 0.2s ease;
+}
+
+.suggestion-avatar:hover {
+    border-color: var(--accent);
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    display: block;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+
+.user-name:hover {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.user-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.stat-item {
+    font-size: 0.8rem;
+    color: var(--text);
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-action {
+    flex-shrink: 0;
+    margin-left: 0.75rem;
+}
+
+.follow-form {
+    margin: 0;
+}
+
+.btn-follow,
+.btn-following {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 1.5rem;
+    border: 1px solid;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.btn-follow {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.btn-follow:hover {
+    background: #3561b7;
+    border-color: #3561b7;
+    color: white;
+}
+
+.btn-following {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-following:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-following:hover i {
+    display: none;
+}
+
+.btn-following:hover::before {
+    content: "Unfollow";
+    margin-left: -0.25rem;
+}
+
+.no-suggestions {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: var(--text);
+    opacity: 0.6;
+    font-size: 0.9rem;
+}
+
+.suggestions-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: rgba(79, 140, 255, 0.02);
+}
+
+.show-more-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.show-more-link:hover {
+    color: var(--accent);
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.show-more-link i {
+    transition: transform 0.2s ease;
+}
+
+.show-more-link:hover i {
+    transform: translateX(2px);
+}
+
+/* Mobile adjustments */
+@@media (max-width: 767.98px) {
+    .suggestions-card {
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    .suggestions-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    
+    .suggestions-title {
+        font-size: 1rem;
+    }
+    
+    .suggestion-item {
+        padding: 0.75rem 1rem;
+    }
+    
+    .suggestion-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .user-stats {
+        display: none;
+    }
+    
+    .btn-follow,
+    .btn-following {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        min-width: 70px;
+    }
+    
+    .suggestions-footer {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Loading animation */
+@@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.suggestions-loading .suggestion-item {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+</style>

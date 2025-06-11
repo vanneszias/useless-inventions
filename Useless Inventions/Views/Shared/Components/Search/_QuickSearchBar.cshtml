@@ -1,0 +1,294 @@
+<div class="quick-search-container">
+    <form class="search-form" action="/Search" method="get">
+        <div class="search-input-group">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" 
+                   name="q" 
+                   class="search-input" 
+                   placeholder="Search inventions, users..."
+                   autocomplete="off"
+                   id="quickSearchInput">
+            <button type="button" class="search-clear-btn d-none" id="searchClearBtn">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </form>
+    
+    <!-- Search Suggestions Dropdown -->
+    <div class="search-suggestions d-none" id="searchSuggestions">
+        <div class="suggestions-content">
+            <div class="suggestions-section">
+                <div class="suggestions-header">Recent searches</div>
+                <div class="recent-searches" id="recentSearches">
+                    <!-- Recent searches will be populated here -->
+                </div>
+            </div>
+            <div class="suggestions-section">
+                <div class="suggestions-header">Popular searches</div>
+                <div class="popular-searches">
+                    <a href="/Search?q=%23useless" class="suggestion-item">
+                        <i class="bi bi-hash me-2"></i>#useless
+                    </a>
+                    <a href="/Search?q=%23funny" class="suggestion-item">
+                        <i class="bi bi-hash me-2"></i>#funny
+                    </a>
+                    <a href="/Search?q=%23weird" class="suggestion-item">
+                        <i class="bi bi-hash me-2"></i>#weird
+                    </a>
+                    <a href="/Search?q=%23creative" class="suggestion-item">
+                        <i class="bi bi-hash me-2"></i>#creative
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-search-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-form {
+    width: 100%;
+}
+
+.search-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.search-input-group:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.1);
+}
+
+.search-icon {
+    color: var(--text);
+    opacity: 0.6;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.95rem;
+    outline: none;
+    padding: 0;
+}
+
+.search-input::placeholder {
+    color: var(--text);
+    opacity: 0.5;
+}
+
+.search-clear-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    opacity: 0.6;
+    padding: 0.25rem;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-left: 0.5rem;
+}
+
+.search-clear-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    margin-top: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.suggestions-content {
+    padding: 1rem;
+}
+
+.suggestions-section {
+    margin-bottom: 1.5rem;
+}
+
+.suggestions-section:last-child {
+    margin-bottom: 0;
+}
+
+.suggestions-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    opacity: 0.8;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-bottom: 0.25rem;
+}
+
+.suggestion-item:hover {
+    background: rgba(79, 140, 255, 0.1);
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.suggestion-item:last-child {
+    margin-bottom: 0;
+}
+
+.recent-searches .suggestion-item {
+    opacity: 0.8;
+}
+
+/* Mobile adjustments */
+@@media (max-width: 767.98px) {
+    .search-suggestions {
+        left: -1rem;
+        right: -1rem;
+        border-radius: 1rem 1rem 0 0;
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        max-height: 60vh;
+    }
+    
+    .suggestions-content {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Scrollbar for suggestions */
+.search-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-suggestions::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb:hover {
+    background: var(--text);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('quickSearchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const recentSearches = document.getElementById('recentSearches');
+    
+    // Show/hide clear button
+    searchInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            searchClearBtn.classList.remove('d-none');
+        } else {
+            searchClearBtn.classList.add('d-none');
+        }
+    });
+    
+    // Clear search
+    searchClearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        searchClearBtn.classList.add('d-none');
+        searchInput.focus();
+    });
+    
+    // Show suggestions on focus
+    searchInput.addEventListener('focus', function() {
+        loadRecentSearches();
+        searchSuggestions.classList.remove('d-none');
+    });
+    
+    // Hide suggestions on click outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.quick-search-container')) {
+            searchSuggestions.classList.add('d-none');
+        }
+    });
+    
+    // Load recent searches from localStorage
+    function loadRecentSearches() {
+        const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+        recentSearches.innerHTML = '';
+        
+        recent.slice(0, 5).forEach(search => {
+            const item = document.createElement('a');
+            item.href = `/Search?q=${encodeURIComponent(search)}`;
+            item.className = 'suggestion-item';
+            item.innerHTML = `<i class="bi bi-clock-history me-2"></i>${search}`;
+            recentSearches.appendChild(item);
+        });
+        
+        if (recent.length === 0) {
+            recentSearches.innerHTML = '<div class="text-muted small px-3">No recent searches</div>';
+        }
+    }
+    
+    // Save search to recent searches
+    function saveRecentSearch(query) {
+        if (!query.trim()) return;
+        
+        let recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+        recent = recent.filter(item => item !== query); // Remove if already exists
+        recent.unshift(query); // Add to beginning
+        recent = recent.slice(0, 10); // Keep only 10 recent searches
+        
+        localStorage.setItem('recentSearches', JSON.stringify(recent));
+    }
+    
+    // Save search on form submit
+    document.querySelector('.search-form').addEventListener('submit', function() {
+        saveRecentSearch(searchInput.value);
+    });
+    
+    // Save search on suggestion click
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.suggestion-item')) {
+            const suggestionText = e.target.closest('.suggestion-item').textContent.trim();
+            saveRecentSearch(suggestionText);
+        }
+    });
+});
+</script>

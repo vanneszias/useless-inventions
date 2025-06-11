@@ -1,0 +1,458 @@
+@{
+    ViewData["Title"] = "Explore People";
+    var activeUsers = ViewBag.ActiveUsers as dynamic ?? new List<dynamic>();
+    var newUsers = ViewBag.NewUsers as dynamic ?? new List<dynamic>();
+}
+
+<div class="explore-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h2 mb-1">Discover People</h1>
+                <p class="text-muted mb-0">Connect with creative minds and inventors</p>
+            </div>
+            <div class="explore-nav">
+                <a href="/Explore/Trends" class="btn btn-sm btn-outline-secondary">Trends</a>
+                <a href="/Explore/People" class="btn btn-sm btn-primary">People</a>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Most Active Creators -->
+    <div class="people-section mb-5">
+        <h3 class="h5 mb-3">
+            <i class="bi bi-star-fill text-warning me-2"></i>
+            Most Active Creators
+        </h3>
+
+        @if (activeUsers != null && ((IEnumerable<dynamic>)activeUsers).Any())
+        {
+            <div class="row g-3">
+                @foreach (var user in activeUsers)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="user-card">
+                            <div class="user-card-header">
+                                <div class="user-avatar-section">
+                                    @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                    {
+                                        <img src="@user.AvatarUrl" alt="@user.UserName" class="user-avatar-large">
+                                    }
+                                    else
+                                    {
+                                        <div class="user-avatar-large-placeholder">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                    }
+                                    <div class="creator-badge">
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="user-info">
+                                    <h5 class="user-name">
+                                        <a href="/Profile/@user.UserName" class="text-decoration-none">
+                                            @user.UserName
+                                        </a>
+                                    </h5>
+                                    <p class="user-meta text-muted">
+                                        <i class="bi bi-lightbulb me-1"></i>
+                                        Active inventor
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="user-stats">
+                                <div class="stat-item">
+                                    <span class="stat-number">@user.InventionCount</span>
+                                    <span class="stat-label">Inventions</span>
+                                </div>
+                                @if (user.LatestInvention != null)
+                                {
+                                    <div class="latest-invention">
+                                        <small class="text-muted">Latest:</small>
+                                        <a href="/Inventions/Details/@user.LatestInvention.Id" class="invention-link">
+                                            @user.LatestInvention.Title
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="user-actions">
+                                <a href="/Profile/@user.UserName" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-person me-1"></i>
+                                    View Profile
+                                </a>
+                                <button class="btn btn-primary btn-sm" onclick="followUser('@user.Id')">
+                                    <i class="bi bi-person-plus me-1"></i>
+                                    Follow
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-section">
+                <div class="empty-icon">
+                    <i class="bi bi-people display-4 text-muted"></i>
+                </div>
+                <p class="text-muted">No active creators found yet.</p>
+            </div>
+        }
+    </div>
+
+    <!-- New Members -->
+    <div class="people-section">
+        <h3 class="h5 mb-3">
+            <i class="bi bi-person-plus-fill text-success me-2"></i>
+            Welcome New Members
+        </h3>
+
+        @if (newUsers != null && ((IEnumerable<dynamic>)newUsers).Any())
+        {
+            <div class="row g-3">
+                @foreach (var user in newUsers)
+                {
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="new-user-card">
+                            <div class="new-user-header">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <img src="@user.AvatarUrl" alt="@user.UserName" class="user-avatar-medium">
+                                }
+                                else
+                                {
+                                    <div class="user-avatar-medium-placeholder">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                }
+                                <div class="new-badge">
+                                    <i class="bi bi-sparkle"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="new-user-info">
+                                <h6 class="user-name">
+                                    <a href="/Profile/@user.UserName" class="text-decoration-none">
+                                        @user.UserName
+                                    </a>
+                                </h6>
+                                <small class="text-muted">
+                                    @if (user.InventionCount > 0)
+                                    {
+                                        <i class="bi bi-lightbulb-fill me-1"></i>@user.InventionCount @(user.InventionCount == 1 ? "invention" : "inventions")
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-person-badge me-1"></i><span>New member</span>
+                                    }
+                                </small>
+                            </div>
+                            
+                            <div class="new-user-actions">
+                                <button class="btn btn-outline-primary btn-sm w-100" onclick="followUser('@user.Id')">
+                                    <i class="bi bi-person-plus me-1"></i>
+                                    Follow
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-section">
+                <div class="empty-icon">
+                    <i class="bi bi-person-hearts display-4 text-muted"></i>
+                </div>
+                <p class="text-muted">No new members to show.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .explore-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .page-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .explore-nav .btn {
+        margin-left: 0.5rem;
+    }
+
+    .people-section {
+        margin-bottom: 2rem;
+    }
+
+    /* User Cards */
+    .user-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .user-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .user-card-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-avatar-section {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--border);
+    }
+
+    .user-avatar-large-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 2rem;
+        border: 3px solid var(--border);
+    }
+
+    .creator-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        color: #8b5a00;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        border: 2px solid white;
+    }
+
+    .user-name a {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .user-name a:hover {
+        color: var(--accent);
+    }
+
+    .user-meta {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    .user-stats {
+        text-align: center;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin: 1rem 0;
+    }
+
+    .stat-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .latest-invention {
+        margin-top: 0.75rem;
+    }
+
+    .invention-link {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .invention-link:hover {
+        color: var(--accent);
+    }
+
+    .user-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    /* New User Cards */
+    .new-user-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .new-user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent);
+    }
+
+    .new-user-header {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .user-avatar-medium {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border);
+    }
+
+    .user-avatar-medium-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        border: 2px solid var(--border);
+    }
+
+    .new-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+        border: 2px solid white;
+    }
+
+    .new-user-info {
+        margin-bottom: 1rem;
+    }
+
+    .new-user-info .user-name {
+        margin-bottom: 0.25rem;
+    }
+
+    .new-user-info .user-name a {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    /* Empty States */
+    .empty-section {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .empty-icon {
+        margin-bottom: 1rem;
+        opacity: 0.6;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .explore-nav {
+            margin-top: 1rem;
+        }
+
+        .explore-nav .btn {
+            margin-left: 0;
+            margin-right: 0.5rem;
+        }
+
+        .user-actions {
+            flex-direction: column;
+        }
+
+        .user-actions .btn {
+            flex: 1;
+        }
+
+        .user-card {
+            padding: 1rem;
+        }
+
+        .new-user-card {
+            padding: 0.75rem;
+        }
+    }
+</style>
+
+<script>
+    function followUser(userId) {
+        // This would typically make an AJAX call to follow/unfollow
+        // For now, just show a placeholder message
+        alert('Follow functionality would be implemented here for user: ' + userId);
+    }
+</script>

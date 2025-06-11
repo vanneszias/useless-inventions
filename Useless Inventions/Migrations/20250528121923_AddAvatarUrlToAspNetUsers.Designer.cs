@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Useless_Inventions.Data;
@@ -11,9 +12,11 @@ using Useless_Inventions.Data;
 namespace Useless_Inventions.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250528121923_AddAvatarUrlToAspNetUsers")]
+    partial class AddAvatarUrlToAspNetUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,9 +299,6 @@ namespace Useless_Inventions.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -322,8 +322,6 @@ namespace Useless_Inventions.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("UserId");
 
@@ -356,49 +354,6 @@ namespace Useless_Inventions.Migrations
                         .IsUnique();
 
                     b.ToTable("Likes");
-                });
-
-            modelBuilder.Entity("Useless_Inventions.Models.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FromUserId")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("InventionId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("ToUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromUserId");
-
-                    b.HasIndex("InventionId");
-
-                    b.HasIndex("ToUserId");
-
-                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -492,10 +447,6 @@ namespace Useless_Inventions.Migrations
 
             modelBuilder.Entity("Useless_Inventions.Models.Invention", b =>
                 {
-                    b.HasOne("Useless_Inventions.Models.ApplicationUser", null)
-                        .WithMany("Inventions")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("Useless_Inventions.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -522,36 +473,6 @@ namespace Useless_Inventions.Migrations
                     b.Navigation("Invention");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Useless_Inventions.Models.Notification", b =>
-                {
-                    b.HasOne("Useless_Inventions.Models.ApplicationUser", "FromUser")
-                        .WithMany()
-                        .HasForeignKey("FromUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Useless_Inventions.Models.Invention", "Invention")
-                        .WithMany()
-                        .HasForeignKey("InventionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Useless_Inventions.Models.ApplicationUser", "ToUser")
-                        .WithMany()
-                        .HasForeignKey("ToUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FromUser");
-
-                    b.Navigation("Invention");
-
-                    b.Navigation("ToUser");
-                });
-
-            modelBuilder.Entity("Useless_Inventions.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Inventions");
                 });
 
             modelBuilder.Entity("Useless_Inventions.Models.Invention", b =>
